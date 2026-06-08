@@ -1,0 +1,125 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
+import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
+
+export async function GET(request: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return unauthorizedResponse();
+    }
+
+    const searchParams = request.nextUrl.searchParams;
+    const search = searchParams.get('search') || '';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
+    const ownerId = searchParams.get('ownerId');
+
+    const where: {
+      name?: { contains: string; mode: 'insensitive' };
+      ownerId?: number;
+    } = {};
+
+    if (search) {
+      where.name = { contains: search, mode: 'insensitive' };
+    }
+
+    if (ownerId) {
+      where.ownerId = parseInt(ownerId);
+    }
+
+    if (user.role === 'CLIENT') {
+      where.ownerId = user.userId;
+    }
+
+    const [pets, total] = await Promise.all([
+      prisma.pet.findMany({
+        where,
+        include: {
+          owner: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.pet.count({ where }),
+    ]);
+
+    return successResponse({
+      data: pets,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    return errorResponse('Error al obtener mascotas', 500);
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return unauthorizedResponse();
+    }
+
+    const body = await request.json();
+    const { name, species, breed, birthDate, weight, ownerId } = body;
+
+    if (!name || !species) {
+      return errorResponse('Nombre y especie son requeridos');
+    }
+
+    let petOwnerId: number;
+
+    if (user.role === 'CLIENT') {
+      petOwnerId = user.userId;
+    } else if (ownerId) {
+      await requireStaff();
+      petOwnerId = parseInt(ownerId);
+    } else {
+      return errorResponse('ownerId es requerido');
+    }
+
+    const pet = await prisma.pet.create({
+      data: {
+        name,
+        species,
+        breed: breed || null,
+        birthDate: birthDate ? new Date(birthDate) : null,
+        weight: weight ? parseFloat(weight) : null,
+        ownerId: petOwnerId,
+      },
+      include: {
+        owner: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    return successResponse(pet, 'Mascota creada exitosamente', 201);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'No autorizado') {
+      return unauthorizedResponse();
+    }
+    if (error instanceof Error && error.message === 'Acceso prohibido') {
+      return forbiddenResponse();
+    }
+    return errorResponse('Error al crear mascota', 500);
+  }
+}

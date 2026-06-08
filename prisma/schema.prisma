@@ -37,6 +37,18 @@ model User {
   medicalRecords     MedicalRecord[]
 }
 
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  color       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  appointments Appointment[]
+
+  @@index([name])
+}
+
 model Pet {
   id        Int       @id @default(autoincrement())
   name      String
@@ -61,11 +73,13 @@ model Appointment {
   notes     String?
   petId     Int
   vetId     Int?
+  categoryId String
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
-  pet  Pet     @relation(fields: [petId], references: [id], onDelete: Cascade)
-  vet  User?   @relation("VetAppointments", fields: [vetId], references: [id])
+  pet      Pet      @relation(fields: [petId], references: [id], onDelete: Cascade)
+  vet      User?    @relation("VetAppointments", fields: [vetId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
 }
 
 model MedicalRecord {
