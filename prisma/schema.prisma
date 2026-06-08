@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VET
+  RECEPTIONIST
+  CLIENT
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pets               Pet[]
+  vetAppointments    Appointment[] @relation("VetAppointments")
+  medicalRecords     MedicalRecord[]
+}
+
+model Pet {
+  id        Int       @id @default(autoincrement())
+  name      String
+  species   String
+  breed     String?
+  birthDate DateTime?
+  weight    Float?
+  ownerId   Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  appointments  Appointment[]
+  medicalRecords MedicalRecord[]
+}
+
+model Appointment {
+  id        Int               @id @default(autoincrement())
+  date      DateTime
+  reason    String
+  status    AppointmentStatus @default(PENDING)
+  notes     String?
+  petId     Int
+  vetId     Int?
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  pet  Pet     @relation(fields: [petId], references: [id], onDelete: Cascade)
+  vet  User?   @relation("VetAppointments", fields: [vetId], references: [id])
+}
+
+model MedicalRecord {
+  id           Int      @id @default(autoincrement())
+  title        String
+  publicNotes  String   @db.Text
+  privateNotes String?  @db.Text
+  petId        Int
+  vetId        Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
+  vet User @relation(fields: [vetId], references: [id])
+}
