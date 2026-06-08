@@ -1,19 +1,19 @@
-import Calendar from "@/components/calendar/Calendar";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { Metadata } from "next";
-import React from "react";
 
 export const metadata: Metadata = {
-  title: "Next.js Calender | TailAdmin - Next.js Dashboard Template",
-  description:
-    "This is Next.js Calender page for TailAdmin  Tailwind CSS Admin Dashboard Template",
-  // other metadata
+  title: "Calendario | VetAppoint",
+  description: "Calendario de citas",
 };
-export default function page() {
+
+export default function CalendarPage() {
   return (
-    <div>
-      <PageBreadcrumb pageTitle="Calendar" />
-      <Calendar />
+    <div className="mb-6">
+      <h2 className="text-xl font-semibold text-gray-800 dark:text-white/90">
+        Calendario de Citas
+      </h2>
+      <p className="text-gray-600 dark:text-gray-400 mt-4">
+        Visualiza y gestiona el calendario de citas de la veterinaria.
+      </p>
     </div>
   );
 }
