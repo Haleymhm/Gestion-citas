@@ -57,6 +57,7 @@ const statusLabels: Record<string, string> = {
 export default function Calendar() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [vets, setVets] = useState<Vet[]>([]);
+  const [allPets, setAllPets] = useState<Pet[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
@@ -75,7 +76,20 @@ export default function Calendar() {
   useEffect(() => {
     fetchAppointments();
     fetchVets();
+    fetchAllPets();
   }, []);
+
+  const fetchAllPets = async () => {
+    try {
+      const res = await fetch("/api/v1/pets");
+      const data = await res.json();
+      if (data.success) {
+        setAllPets(data.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching pets:", error);
+    }
+  };
 
   const fetchAppointments = async () => {
     try {
@@ -300,19 +314,11 @@ export default function Calendar() {
                   className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
                 >
                   <option value="">Seleccionar mascota</option>
-                  {appointments
-                    .filter((apt) => apt.pet)
-                    .reduce((acc, apt) => {
-                      if (!acc.find((p) => p.id === apt.pet.id)) {
-                        acc.push(apt.pet);
-                      }
-                      return acc;
-                    }, [] as Pet[])
-                    .map((pet) => (
-                      <option key={pet.id} value={pet.id}>
-                        {pet.name} ({pet.owner.firstName} {pet.owner.lastName})
-                      </option>
-                    ))}
+                  {allPets.map((pet) => (
+                    <option key={pet.id} value={pet.id}>
+                      {pet.name} ({pet.owner.firstName} {pet.owner.lastName})
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
