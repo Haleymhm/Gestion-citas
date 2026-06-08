@@ -34,8 +34,20 @@ interface Appointment {
   notes: string | null;
   petId: number;
   vetId: number | null;
+  categoryId: string;
   pet: Pet;
   vet: Vet | null;
+  category: {
+    id: string;
+    name: string;
+    color: string;
+  };
+}
+
+interface Category {
+  id: string;
+  name: string;
+  color: string;
 }
 
 const statusColors: Record<string, string> = {
@@ -57,6 +69,7 @@ const statusLabels: Record<string, string> = {
 export default function Calendar() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [vets, setVets] = useState<Vet[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -67,6 +80,7 @@ export default function Calendar() {
   const [form, setForm] = useState({
     date: "",
     time: "",
+    categoryId: "",
     reason: "",
     petId: "",
     vetId: "",
@@ -77,6 +91,7 @@ export default function Calendar() {
     fetchAppointments();
     fetchVets();
     fetchAllPets();
+    fetchCategories();
   }, []);
 
   const fetchAllPets = async () => {
@@ -88,6 +103,19 @@ export default function Calendar() {
       }
     } catch (error) {
       console.error("Error fetching pets:", error);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("/api/v1/categories");
+      const data = await res.json();
+      if (data.success && data.data.length > 0) {
+        setCategories(data.data);
+        setForm((prev) => ({ ...prev, categoryId: data.data[0].id }));
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
     }
   };
 
@@ -119,10 +147,11 @@ export default function Calendar() {
 
   const events: EventInput[] = appointments.map((apt) => ({
     id: apt.id.toString(),
-    title: `${apt.pet?.name} - ${apt.reason}`,
+    title: `${apt.category?.name || "Sin categoría"}: ${apt.pet?.name} - ${apt.reason}`,
     start: apt.date,
-    backgroundColor: statusColors[apt.status] || "#6b7280",
-    borderColor: statusColors[apt.status] || "#6b7280",
+    backgroundColor: `${apt.category?.color || "#6b7280"}30`,
+    borderColor: apt.category?.color || "#6b7280",
+    borderWidth: 3,
     extendedProps: {
       appointment: apt,
     },
@@ -154,6 +183,7 @@ export default function Calendar() {
     const payload = {
       date: dateTime,
       reason: form.reason,
+      categoryId: form.categoryId,
       petId: parseInt(form.petId),
       vetId: form.vetId ? parseInt(form.vetId) : null,
       notes: form.notes || null,
@@ -222,6 +252,7 @@ export default function Calendar() {
     setForm({
       date: "",
       time: "",
+      categoryId: categories[0]?.id || "",
       reason: "",
       petId: "",
       vetId: "",
@@ -340,6 +371,23 @@ export default function Calendar() {
               </div>
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Categoría *
+                </label>
+                <select
+                  value={form.categoryId}
+                  onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                  required
+                  className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
                   Motivo de consulta *
                 </label>
                 <input
@@ -347,7 +395,7 @@ export default function Calendar() {
                   value={form.reason}
                   onChange={(e) => setForm({ ...form, reason: e.target.value })}
                   required
-                  placeholder="Ej: Vacunación, Revision general..."
+                  placeholder="Ej: Revisión general, corte de pelo..."
                   className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
                 />
               </div>
@@ -402,6 +450,18 @@ export default function Calendar() {
                   }}
                 >
                   {statusLabels[selectedAppointment.status]}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">Categoría:</span>
+                <span
+                  className="px-2 py-1 text-xs font-medium rounded-full"
+                  style={{
+                    backgroundColor: `${selectedAppointment.category?.color || "#6b7280"}20`,
+                    color: selectedAppointment.category?.color || "#6b7280",
+                  }}
+                >
+                  {selectedAppointment.category?.name || "Sin categoría"}
                 </span>
               </div>
               <div className="flex items-center justify-between">

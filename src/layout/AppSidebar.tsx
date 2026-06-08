@@ -56,6 +56,11 @@ const navItems: NavItem[] = [
 
 const othersItems: NavItem[] = [
   {
+    icon: <ListIcon />,
+    name: "Categorías",
+    path: "/categorias",
+  },
+  {
     icon: <UserCircleIcon />,
     name: "Usuarios",
     path: "/usuarios",

@@ -10,12 +10,21 @@ interface Pet {
   breed: string | null;
 }
 
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+}
+
 interface Appointment {
   id: number;
   date: string;
   reason: string;
+  categoryId: string;
+  category: Category | null;
   status: string;
   pet: {
+    id: number;
     name: string;
   };
   vet: {
@@ -43,6 +52,7 @@ const statusColors: Record<string, string> = {
 export default function AgendarCitasPage() {
   const router = useRouter();
   const [pets, setPets] = useState<Pet[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -50,6 +60,7 @@ export default function AgendarCitasPage() {
     petId: "",
     date: "",
     time: "",
+    categoryId: "",
     reason: "",
     notes: "",
   });
@@ -60,13 +71,15 @@ export default function AgendarCitasPage() {
 
   const fetchData = async () => {
     try {
-      const [petsRes, apptsRes] = await Promise.all([
+      const [petsRes, apptsRes, categoriesRes] = await Promise.all([
         fetch("/api/v1/pets"),
         fetch("/api/v1/appointments"),
+        fetch("/api/v1/categories"),
       ]);
 
       const petsData = await petsRes.json();
       const apptsData = await apptsRes.json();
+      const categoriesData = await categoriesRes.json();
 
       if (petsData.success) {
         setPets(petsData.data.data || []);
@@ -74,6 +87,11 @@ export default function AgendarCitasPage() {
 
       if (apptsData.success) {
         setAppointments(apptsData.data || []);
+      }
+
+      if (categoriesData.success && categoriesData.data.length > 0) {
+        setCategories(categoriesData.data);
+        setForm((prev) => ({ ...prev, categoryId: categoriesData.data[0].id }));
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -99,6 +117,7 @@ export default function AgendarCitasPage() {
         body: JSON.stringify({
           date: dateTime,
           reason: form.reason,
+          categoryId: form.categoryId,
           petId: parseInt(form.petId),
           notes: form.notes || null,
         }),
@@ -109,7 +128,7 @@ export default function AgendarCitasPage() {
       if (data.success) {
         alert("Cita solicitada exitosamente. Recibirá un email cuando sea confirmada.");
         setShowForm(false);
-        setForm({ petId: "", date: "", time: "", reason: "", notes: "" });
+        setForm({ petId: "", date: "", time: "", categoryId: categories[0]?.id || "", reason: "", notes: "" });
         fetchData();
       } else {
         alert(data.error);
@@ -223,6 +242,23 @@ export default function AgendarCitasPage() {
             </div>
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                Categoría *
+              </label>
+              <select
+                value={form.categoryId}
+                onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                required
+                className="w-full px-4 py-2.5 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+              >
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
                 Motivo de consulta *
               </label>
               <select
@@ -259,7 +295,7 @@ export default function AgendarCitasPage() {
                 type="button"
                 onClick={() => {
                   setShowForm(false);
-                  setForm({ petId: "", date: "", time: "", reason: "", notes: "" });
+                  setForm({ petId: "", date: "", time: "", categoryId: categories[0]?.id || "", reason: "", notes: "" });
                 }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-400 dark:border-strokedark"
               >
@@ -304,6 +340,17 @@ export default function AgendarCitasPage() {
                         {apt.status === "NO_SHOW" && "⚠"}
                       </span>
                       <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span
+                            className="px-2 py-0.5 text-xs font-medium rounded-full"
+                            style={{
+                              backgroundColor: `${apt.category?.color || "#6b7280"}20`,
+                              color: apt.category?.color || "#6b7280",
+                            }}
+                          >
+                            {apt.category?.name || "Sin categoría"}
+                          </span>
+                        </div>
                         <p className="font-medium text-gray-800 dark:text-white/90">
                           {apt.reason}
                         </p>

@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
     const appointments = await prisma.appointment.findMany({
       where,
       include: {
+        category: true,
         pet: {
           include: {
             owner: {
@@ -95,10 +96,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { date, reason, petId, vetId, notes, status } = body;
+    const { date, reason, categoryId, petId, vetId, notes, status } = body;
 
-    if (!date || !reason || !petId) {
-      return errorResponse('Fecha, motivo y mascota son requeridos');
+    if (!date || !reason || !petId || !categoryId) {
+      return errorResponse('Fecha, motivo, categoría y mascota son requeridos');
+    }
+
+    const categoryExists = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
+
+    if (!categoryExists) {
+      return errorResponse('Categoría no encontrada');
     }
 
     const appointmentDate = new Date(date);
@@ -138,12 +147,14 @@ export async function POST(request: NextRequest) {
       data: {
         date: appointmentDate,
         reason,
+        categoryId,
         status: appointmentStatus,
         notes: notes || null,
         petId: parseInt(petId),
         vetId: vetId ? parseInt(vetId) : null,
       },
       include: {
+        category: true,
         pet: {
           include: {
             owner: {

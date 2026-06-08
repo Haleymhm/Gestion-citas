@@ -16,7 +16,7 @@ interface JWTPayload {
 
 const PUBLIC_PATHS = ['/signin', '/signup', '/api/v1/auth/login', '/api/v1/auth/register'];
 const ADMIN_ONLY_PATHS = ['/usuarios'];
-const STAFF_PATHS = ['/', '/calendar', '/clientes', '/mascotas', '/historial-medico'];
+const STAFF_PATHS = ['/', '/calendar', '/categorias', '/clientes', '/mascotas', '/historial-medico'];
 const VET_PATHS = ['/historial-medico'];
 
 export async function middleware(request: NextRequest) {

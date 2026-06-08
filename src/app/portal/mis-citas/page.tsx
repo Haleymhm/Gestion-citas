@@ -2,12 +2,19 @@
 
 import { useEffect, useState } from "react";
 
+interface Category {
+  id: string;
+  name: string;
+  color: string;
+}
+
 interface Appointment {
   id: number;
   date: string;
   reason: string;
   status: string;
   notes: string | null;
+  category: Category | null;
   pet: {
     id: number;
     name: string;
@@ -132,6 +139,17 @@ export default function MisCitasPage() {
                           <p className="font-medium text-gray-800 dark:text-white/90">
                             {apt.reason}
                           </p>
+                          {apt.category && (
+                            <span
+                              className="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full"
+                              style={{
+                                backgroundColor: `${apt.category.color}20`,
+                                color: apt.category.color,
+                              }}
+                            >
+                              {apt.category.name}
+                            </span>
+                          )}
                           <p className="text-sm text-gray-500 dark:text-gray-400">
                             Mascota: {apt.pet?.name}
                           </p>
@@ -182,6 +200,17 @@ export default function MisCitasPage() {
                           <p className="font-medium text-gray-600 dark:text-gray-400">
                             {apt.reason}
                           </p>
+                          {apt.category && (
+                            <span
+                              className="inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full"
+                              style={{
+                                backgroundColor: `${apt.category.color}20`,
+                                color: apt.category.color,
+                              }}
+                            >
+                              {apt.category.name}
+                            </span>
+                          )}
                           <p className="text-sm text-gray-400">
                             {apt.pet?.name} • {new Date(apt.date).toLocaleDateString("es-ES")}
                           </p>

@@ -18,6 +18,7 @@ export async function GET(
     const appointment = await prisma.appointment.findUnique({
       where: { id: parseInt(id) },
       include: {
+        category: true,
         pet: {
           include: {
             owner: {
@@ -74,7 +75,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { date, reason, status, notes, vetId, petId } = body;
+    const { date, reason, status, notes, vetId, petId, categoryId } = body;
 
     const existingAppointment = await prisma.appointment.findUnique({
       where: { id: parseInt(id) },
@@ -108,6 +109,7 @@ export async function PUT(
     if (notes !== undefined) updateData.notes = notes || null;
     if (vetId !== undefined) updateData.vetId = vetId ? parseInt(vetId) : null;
     if (petId) updateData.petId = parseInt(petId);
+    if (categoryId) updateData.categoryId = categoryId;
 
     if (updateData.vetId && updateData.date) {
       const conflict = await prisma.appointment.findFirst({
