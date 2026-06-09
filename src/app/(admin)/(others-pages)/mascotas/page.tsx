@@ -35,6 +35,14 @@ interface Client {
   email: string;
 }
 
+interface ClientsApiResponse {
+  data: Client[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export default function MascotasPage() {
   const [pets, setPets] = useState<Pet[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
@@ -79,7 +87,7 @@ export default function MascotasPage() {
       const res = await fetch("/api/v1/clients");
       const data = await res.json();
       if (data.success) {
-        const response = data.data as ApiResponse;
+        const response = data.data as ClientsApiResponse;
         setClients(response.data || []);
       }
     } catch (error) {

@@ -92,6 +92,7 @@ export async function PUT(
       notes?: string | null;
       vetId?: number | null;
       petId?: number;
+      categoryId?: string;
     } = {};
 
     if (date) {
