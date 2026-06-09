@@ -33,6 +33,12 @@ enum ReproductiveStatus {
   CASTRATED
 }
 
+enum DewormingType {
+  INTERNAL
+  EXTERNAL
+  BOTH
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -53,6 +59,8 @@ model User {
   pets               Pet[]
   vetAppointments    Appointment[] @relation("VetAppointments")
   medicalRecords     MedicalRecord[]
+  vaccinations       Vaccination[]
+  dewormingRecords   Deworming[]
 }
 
 model Category {
@@ -82,9 +90,13 @@ model Pet {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  appointments  Appointment[]
-  medicalRecords MedicalRecord[]
+  owner             User             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  appointments      Appointment[]
+  medicalRecords    MedicalRecord[]
+  vaccinations      Vaccination[]
+  dewormingRecords  Deworming[]
+  surgicalHistory   SurgicalHistory[]
+  chronicConditions ChronicCondition[]
 }
 
 model Appointment {
@@ -106,7 +118,10 @@ model Appointment {
 
 model MedicalRecord {
   id           Int      @id @default(autoincrement())
+  date         DateTime @default(now())
   title        String
+  diagnosis    String?  @db.Text
+  treatment    String?  @db.Text
   publicNotes  String   @db.Text
   privateNotes String?  @db.Text
   petId        Int
@@ -114,8 +129,95 @@ model MedicalRecord {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  pet    Pet             @relation(fields: [petId], references: [id], onDelete: Cascade)
+  vet    User            @relation(fields: [vetId], references: [id])
+  vitals VitalSigns?
+  exams  ExamAttachment[]
+}
+
+model VitalSigns {
+  id                    Int     @id @default(autoincrement())
+  weight                Float?
+  temperature           Float?
+  heartRate             Int?
+  respiratoryRate       Int?
+  capillaryRefillTime   String?
+  dehydrationPercentage Float?
+  mucousMembranes       String?
+  medicalRecordId       Int     @unique
+
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+}
+
+model ExamAttachment {
+  id              Int      @id @default(autoincrement())
+  fileName        String
+  fileUrl         String
+  fileType        String
+  description     String?
+  medicalRecordId Int
+  createdAt       DateTime @default(now())
+
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id], onDelete: Cascade)
+}
+
+model Vaccination {
+  id                 Int       @id @default(autoincrement())
+  vaccineName        String
+  vaccineType        String
+  administrationDate DateTime  @default(now())
+  nextDoseDate       DateTime?
+  lotNumber          String?
+  manufacturer       String?
+  veterinarian       String?
+  petId              Int
+  createdById        Int
+  createdAt          DateTime  @default(now())
+
+  pet        Pet   @relation(fields: [petId], references: [id], onDelete: Cascade)
+  createdBy  User  @relation(fields: [createdById], references: [id])
+}
+
+model Deworming {
+  id          Int          @id @default(autoincrement())
+  productName String
+  type        DewormingType
+  dosage      String?
+  date        DateTime     @default(now())
+  nextDate    DateTime?
+  petId       Int
+  createdById Int
+  createdAt   DateTime     @default(now())
+
+  pet       Pet   @relation(fields: [petId], references: [id], onDelete: Cascade)
+  createdBy User  @relation(fields: [createdById], references: [id])
+}
+
+model SurgicalHistory {
+  id          Int       @id @default(autoincrement())
+  procedure   String
+  date        DateTime?
+  complications String?  @db.Text
+  notes       String?   @db.Text
+  outcomes    String?   @db.Text
+  petId       Int
+  createdAt   DateTime  @default(now())
+
   pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
-  vet User @relation(fields: [vetId], references: [id])
+}
+
+model ChronicCondition {
+  id            Int       @id @default(autoincrement())
+  name          String
+  type          String
+  severity      String?
+  diagnosisDate DateTime?
+  notes         String?   @db.Text
+  isActive      Boolean   @default(true)
+  petId         Int
+  createdAt     DateTime  @default(now())
+
+  pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
 }
 
 model Region {

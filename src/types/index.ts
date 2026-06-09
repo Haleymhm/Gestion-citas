@@ -49,14 +49,92 @@ export interface AppointmentDTO {
   createdAt: Date;
 }
 
+export type DewormingType = 'INTERNAL' | 'EXTERNAL' | 'BOTH';
+
+export interface VitalSignsDTO {
+  id: number;
+  weight: number | null;
+  temperature: number | null;
+  heartRate: number | null;
+  respiratoryRate: number | null;
+  capillaryRefillTime: string | null;
+  dehydrationPercentage: number | null;
+  mucousMembranes: string | null;
+  medicalRecordId: number;
+}
+
+export interface ExamAttachmentDTO {
+  id: number;
+  fileName: string;
+  fileUrl: string;
+  fileType: string;
+  description: string | null;
+  medicalRecordId: number;
+  createdAt: Date;
+}
+
+export interface VaccinationDTO {
+  id: number;
+  vaccineName: string;
+  vaccineType: string;
+  administrationDate: Date;
+  nextDoseDate: Date | null;
+  lotNumber: string | null;
+  manufacturer: string | null;
+  veterinarian: string | null;
+  petId: number;
+  createdById: number;
+  createdAt: Date;
+}
+
+export interface DewormingDTO {
+  id: number;
+  productName: string;
+  type: DewormingType;
+  dosage: string | null;
+  date: Date;
+  nextDate: Date | null;
+  petId: number;
+  createdById: number;
+  createdAt: Date;
+}
+
+export interface SurgicalHistoryDTO {
+  id: number;
+  procedure: string;
+  date: Date | null;
+  complications: string | null;
+  notes: string | null;
+  outcomes: string | null;
+  petId: number;
+  createdAt: Date;
+}
+
+export interface ChronicConditionDTO {
+  id: number;
+  name: string;
+  type: string;
+  severity: string | null;
+  diagnosisDate: Date | null;
+  notes: string | null;
+  isActive: boolean;
+  petId: number;
+  createdAt: Date;
+}
+
 export interface MedicalRecordDTO {
   id: number;
+  date: Date;
   title: string;
+  diagnosis: string | null;
+  treatment: string | null;
   publicNotes: string;
   privateNotes: string | null;
   petId: number;
   vetId: number;
   pet?: PetDTO;
   vet?: UserDTO;
+  vitals?: VitalSignsDTO | null;
+  exams?: ExamAttachmentDTO[];
   createdAt: Date;
 }

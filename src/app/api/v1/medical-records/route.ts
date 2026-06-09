@@ -59,8 +59,10 @@ export async function GET(request: NextRequest) {
             email: true,
           },
         },
+        vitals: true,
+        exams: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { date: 'desc' },
     });
 
     return successResponse(medicalRecords);
@@ -79,7 +81,7 @@ export async function POST(request: NextRequest) {
     await requireStaff();
 
     const body = await request.json();
-    const { title, publicNotes, privateNotes, petId } = body;
+    const { date, title, diagnosis, treatment, publicNotes, privateNotes, petId, vitals } = body;
 
     if (!title || !publicNotes || !petId) {
       return errorResponse('Título, notas públicas y mascota son requeridos');
@@ -97,14 +99,29 @@ export async function POST(request: NextRequest) {
       return forbiddenResponse();
     }
 
+    const createData: {
+      title: string;
+      publicNotes: string;
+      privateNotes: string | null;
+      petId: number;
+      vetId: number;
+      date?: Date;
+      diagnosis?: string | null;
+      treatment?: string | null;
+    } = {
+      title,
+      publicNotes,
+      privateNotes: privateNotes || null,
+      petId: parseInt(petId),
+      vetId: user.userId,
+    };
+
+    if (date) createData.date = new Date(date);
+    if (diagnosis) createData.diagnosis = diagnosis;
+    if (treatment) createData.treatment = treatment;
+
     const medicalRecord = await prisma.medicalRecord.create({
-      data: {
-        title,
-        publicNotes,
-        privateNotes: privateNotes || null,
-        petId: parseInt(petId),
-        vetId: user.userId,
-      },
+      data: createData,
       include: {
         pet: {
           select: {
@@ -121,10 +138,50 @@ export async function POST(request: NextRequest) {
             lastName: true,
           },
         },
+        vitals: true,
+        exams: true,
       },
     });
 
-    return successResponse(medicalRecord, 'Historia médica creada exitosamente', 201);
+    if (vitals) {
+      await prisma.vitalSigns.create({
+        data: {
+          weight: vitals.weight ? parseFloat(vitals.weight) : null,
+          temperature: vitals.temperature ? parseFloat(vitals.temperature) : null,
+          heartRate: vitals.heartRate ? parseInt(vitals.heartRate) : null,
+          respiratoryRate: vitals.respiratoryRate ? parseInt(vitals.respiratoryRate) : null,
+          capillaryRefillTime: vitals.capillaryRefillTime || null,
+          dehydrationPercentage: vitals.dehydrationPercentage ? parseFloat(vitals.dehydrationPercentage) : null,
+          mucousMembranes: vitals.mucousMembranes || null,
+          medicalRecordId: medicalRecord.id,
+        },
+      });
+    }
+
+    const updatedRecord = await prisma.medicalRecord.findUnique({
+      where: { id: medicalRecord.id },
+      include: {
+        pet: {
+          select: {
+            id: true,
+            name: true,
+            species: true,
+            breed: true,
+          },
+        },
+        vet: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        vitals: true,
+        exams: true,
+      },
+    });
+
+    return successResponse(updatedRecord, 'Historia médica creada exitosamente', 201);
   } catch (error) {
     if (error instanceof Error && error.message === 'No autorizado') {
       return unauthorizedResponse();
