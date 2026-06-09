@@ -22,16 +22,34 @@ enum AppointmentStatus {
   NO_SHOW
 }
 
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum ReproductiveStatus {
+  FERTILE
+  STERILIZED
+  CASTRATED
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
   firstName String
   lastName  String
+  rut       String?  @unique
+  phone     String?
+  address   String?
+  regionId  String?
+  comunaId  String?
   role      Role
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  region    Region?    @relation(fields: [regionId], references: [id])
+  comuna    Comuna?    @relation(fields: [comunaId], references: [id])
   pets               Pet[]
   vetAppointments    Appointment[] @relation("VetAppointments")
   medicalRecords     MedicalRecord[]
@@ -56,6 +74,10 @@ model Pet {
   breed     String?
   birthDate DateTime?
   weight    Float?
+  sex       Sex?
+  reproductiveStatus ReproductiveStatus?
+  specialCharacteristics String?  @db.Text
+  microchipNumber        String?
   ownerId   Int
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -101,6 +123,7 @@ model Region {
   code      String   @unique
   name      String
   comunas   Comuna[]
+  clients   User[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -113,6 +136,7 @@ model Comuna {
   name      String
   regionId  String
   region    Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  clients   User[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

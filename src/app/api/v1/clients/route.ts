@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
             { firstName: { contains: search, mode: 'insensitive' as const } },
             { lastName: { contains: search, mode: 'insensitive' as const } },
             { email: { contains: search, mode: 'insensitive' as const } },
+            { rut: { contains: search, mode: 'insensitive' as const } },
           ],
         }
       : { role: 'CLIENT' as const };
@@ -33,6 +34,11 @@ export async function GET(request: NextRequest) {
           email: true,
           firstName: true,
           lastName: true,
+          rut: true,
+          phone: true,
+          address: true,
+          regionId: true,
+          comunaId: true,
           role: true,
           createdAt: true,
           pets: {
@@ -40,6 +46,18 @@ export async function GET(request: NextRequest) {
               id: true,
               name: true,
               species: true,
+            },
+          },
+          region: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          comuna: {
+            select: {
+              id: true,
+              name: true,
             },
           },
         },
@@ -73,10 +91,10 @@ export async function POST(request: NextRequest) {
     await requireStaff();
 
     const body = await request.json();
-    const { email, password, firstName, lastName } = body;
+    const { email, password, firstName, lastName, rut, phone, address, regionId, comunaId } = body;
 
-    if (!email || !password || !firstName || !lastName) {
-      return errorResponse('Todos los campos son requeridos');
+    if (!email || !password || !firstName || !lastName || !rut) {
+      return errorResponse('Los campos nombre, apellido, email, password y RUT son requeridos');
     }
 
     if (password.length < 8) {
@@ -88,6 +106,11 @@ export async function POST(request: NextRequest) {
       return errorResponse('El email ya está registrado');
     }
 
+    const existingRut = await prisma.user.findUnique({ where: { rut } });
+    if (existingRut) {
+      return errorResponse('El RUT ya está registrado');
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.create({
@@ -96,6 +119,11 @@ export async function POST(request: NextRequest) {
         password: hashedPassword,
         firstName,
         lastName,
+        rut,
+        phone: phone || null,
+        address: address || null,
+        regionId: regionId || null,
+        comunaId: comunaId || null,
         role: 'CLIENT',
       },
       select: {
@@ -103,6 +131,11 @@ export async function POST(request: NextRequest) {
         email: true,
         firstName: true,
         lastName: true,
+        rut: true,
+        phone: true,
+        address: true,
+        regionId: true,
+        comunaId: true,
         role: true,
         createdAt: true,
       },

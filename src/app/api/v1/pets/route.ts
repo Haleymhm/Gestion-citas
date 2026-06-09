@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, species, breed, birthDate, weight, ownerId } = body;
+    const { name, species, breed, birthDate, weight, sex, reproductiveStatus, specialCharacteristics, microchipNumber, ownerId } = body;
 
     if (!name || !species) {
       return errorResponse('Nombre y especie son requeridos');
@@ -98,6 +98,10 @@ export async function POST(request: NextRequest) {
         breed: breed || null,
         birthDate: birthDate ? new Date(birthDate) : null,
         weight: weight ? parseFloat(weight) : null,
+        sex: sex || null,
+        reproductiveStatus: reproductiveStatus || null,
+        specialCharacteristics: specialCharacteristics || null,
+        microchipNumber: microchipNumber || null,
         ownerId: petOwnerId,
       },
       include: {

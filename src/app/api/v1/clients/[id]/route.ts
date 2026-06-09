@@ -19,6 +19,11 @@ export async function GET(
         email: true,
         firstName: true,
         lastName: true,
+        rut: true,
+        phone: true,
+        address: true,
+        regionId: true,
+        comunaId: true,
         role: true,
         createdAt: true,
         pets: {
@@ -29,6 +34,18 @@ export async function GET(
             breed: true,
             birthDate: true,
             weight: true,
+          },
+        },
+        region: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        comuna: {
+          select: {
+            id: true,
+            name: true,
           },
         },
       },
@@ -58,18 +75,28 @@ export async function PUT(
     await requireStaff();
     const { id } = await params;
     const body = await request.json();
-    const { firstName, lastName, email, password } = body;
+    const { firstName, lastName, email, password, rut, phone, address, regionId, comunaId } = body;
 
     const data: {
       firstName?: string;
       lastName?: string;
       email?: string;
       password?: string;
+      rut?: string;
+      phone?: string | null;
+      address?: string | null;
+      regionId?: string | null;
+      comunaId?: string | null;
     } = {};
 
     if (firstName) data.firstName = firstName;
     if (lastName) data.lastName = lastName;
     if (email) data.email = email;
+    if (rut !== undefined) data.rut = rut;
+    if (phone !== undefined) data.phone = phone || null;
+    if (address !== undefined) data.address = address || null;
+    if (regionId !== undefined) data.regionId = regionId || null;
+    if (comunaId !== undefined) data.comunaId = comunaId || null;
 
     if (password && password.length >= 8) {
       data.password = await bcrypt.hash(password, 10);
@@ -83,6 +110,11 @@ export async function PUT(
         email: true,
         firstName: true,
         lastName: true,
+        rut: true,
+        phone: true,
+        address: true,
+        regionId: true,
+        comunaId: true,
         role: true,
         createdAt: true,
       },

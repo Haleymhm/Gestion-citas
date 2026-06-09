@@ -2,14 +2,34 @@
 
 import { useEffect, useState } from "react";
 
+interface Region {
+  id: string;
+  code: string;
+  name: string;
+}
+
+interface Comuna {
+  id: string;
+  code: string;
+  name: string;
+  regionId: string;
+}
+
 interface Client {
   id: number;
   email: string;
   firstName: string;
   lastName: string;
+  rut: string;
+  phone: string | null;
+  address: string | null;
+  regionId: string | null;
+  comunaId: string | null;
   role: string;
   createdAt: string;
   pets: { id: number; name: string; species: string }[];
+  region?: { id: string; name: string };
+  comuna?: { id: string; name: string };
 }
 
 interface ApiResponse {
@@ -22,6 +42,8 @@ interface ApiResponse {
 
 export default function ClientesPage() {
   const [clients, setClients] = useState<Client[]>([]);
+  const [regions, setRegions] = useState<Region[]>([]);
+  const [comunas, setComunas] = useState<Comuna[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -31,11 +53,25 @@ export default function ClientesPage() {
     password: "",
     firstName: "",
     lastName: "",
+    rut: "",
+    phone: "",
+    address: "",
+    regionId: "",
+    comunaId: "",
   });
 
   useEffect(() => {
     fetchClients();
+    fetchRegions();
   }, [search]);
+
+  useEffect(() => {
+    if (form.regionId) {
+      fetchComunas(form.regionId);
+    } else {
+      setComunas([]);
+    }
+  }, [form.regionId]);
 
   const fetchClients = async () => {
     try {
@@ -55,6 +91,30 @@ export default function ClientesPage() {
     }
   };
 
+  const fetchRegions = async () => {
+    try {
+      const res = await fetch("/api/v1/regions");
+      const data = await res.json();
+      if (data.success) {
+        setRegions(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching regions:", error);
+    }
+  };
+
+  const fetchComunas = async (regionId: string) => {
+    try {
+      const res = await fetch(`/api/v1/comunas?regionId=${regionId}`);
+      const data = await res.json();
+      if (data.success) {
+        setComunas(data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching comunas:", error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingClient
@@ -62,11 +122,19 @@ export default function ClientesPage() {
       : "/api/v1/clients";
     const method = editingClient ? "PUT" : "POST";
 
+    const submitData = {
+      ...form,
+      phone: form.phone || null,
+      address: form.address || null,
+      regionId: form.regionId || null,
+      comunaId: form.comunaId || null,
+    };
+
     try {
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify(submitData),
       });
       const data = await res.json();
 
@@ -88,7 +156,15 @@ export default function ClientesPage() {
       password: "",
       firstName: client.firstName,
       lastName: client.lastName,
+      rut: client.rut || "",
+      phone: client.phone || "",
+      address: client.address || "",
+      regionId: client.regionId || "",
+      comunaId: client.comunaId || "",
     });
+    if (client.regionId) {
+      fetchComunas(client.regionId);
+    }
     setShowModal(true);
   };
 
@@ -114,7 +190,13 @@ export default function ClientesPage() {
       password: "",
       firstName: "",
       lastName: "",
+      rut: "",
+      phone: "",
+      address: "",
+      regionId: "",
+      comunaId: "",
     });
+    setComunas([]);
   };
 
   return (
@@ -134,7 +216,7 @@ export default function ClientesPage() {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Buscar por nombre o email..."
+          placeholder="Buscar por nombre, email o RUT..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="px-4 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark w-full max-w-xs"
@@ -153,7 +235,16 @@ export default function ClientesPage() {
                     Nombre
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                    RUT
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                     Email
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Teléfono
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Ubicación
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                     Mascotas
@@ -169,7 +260,7 @@ export default function ClientesPage() {
               <tbody>
                 {clients.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
                       No hay clientes registrados
                     </td>
                   </tr>
@@ -182,8 +273,19 @@ export default function ClientesPage() {
                       <td className="px-4 py-3 text-sm text-gray-800 dark:text-white/90">
                         {client.firstName} {client.lastName}
                       </td>
+                      <td className="px-4 py-3 text-sm font-mono text-gray-600 dark:text-gray-400">
+                        {client.rut || "-"}
+                      </td>
                       <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                         {client.email}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                        {client.phone || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                        {client.comuna?.name
+                          ? `${client.comuna.name}, ${client.region?.name || ""}`
+                          : client.region?.name || "-"}
                       </td>
                       <td className="px-4 py-3">
                         {client.pets && client.pets.length > 0 ? (
@@ -229,7 +331,7 @@ export default function ClientesPage() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md p-6 bg-white rounded-lg dark:bg-boxdark">
+          <div className="w-full max-w-lg p-6 bg-white rounded-lg dark:bg-boxdark max-h-[90vh] overflow-y-auto">
             <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
               {editingClient ? "Editar Cliente" : "Nuevo Cliente"}
             </h3>
@@ -237,7 +339,7 @@ export default function ClientesPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Nombre
+                    Nombre *
                   </label>
                   <input
                     type="text"
@@ -251,7 +353,7 @@ export default function ClientesPage() {
                 </div>
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Apellido
+                    Apellido *
                   </label>
                   <input
                     type="text"
@@ -264,9 +366,26 @@ export default function ClientesPage() {
                   />
                 </div>
               </div>
+
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Email
+                  RUT *
+                </label>
+                <input
+                  type="text"
+                  value={form.rut}
+                  onChange={(e) =>
+                    setForm({ ...form, rut: e.target.value })
+                  }
+                  required
+                  placeholder="Ej: 12.345.678-9"
+                  className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+                />
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Email *
                 </label>
                 <input
                   type="email"
@@ -278,6 +397,7 @@ export default function ClientesPage() {
                   className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
                 />
               </div>
+
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
                   Contraseña {editingClient && "(dejar vacío para no cambiar)"}
@@ -293,6 +413,80 @@ export default function ClientesPage() {
                   className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
                 />
               </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Teléfono
+                  </label>
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(e) =>
+                      setForm({ ...form, phone: e.target.value })
+                    }
+                    placeholder="Ej: +56 9 1234 5678"
+                    className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Región
+                  </label>
+                  <select
+                    value={form.regionId}
+                    onChange={(e) =>
+                      setForm({ ...form, regionId: e.target.value, comunaId: "" })
+                    }
+                    className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+                  >
+                    <option value="">Seleccione región</option>
+                    {regions.map((region) => (
+                      <option key={region.id} value={region.id}>
+                        {region.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Comuna
+                  </label>
+                  <select
+                    value={form.comunaId}
+                    onChange={(e) =>
+                      setForm({ ...form, comunaId: e.target.value })
+                    }
+                    disabled={!form.regionId}
+                    className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark disabled:opacity-50"
+                  >
+                    <option value="">Seleccione comuna</option>
+                    {comunas.map((comuna) => (
+                      <option key={comuna.id} value={comuna.id}>
+                        {comuna.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Dirección
+                  </label>
+                  <input
+                    type="text"
+                    value={form.address}
+                    onChange={(e) =>
+                      setForm({ ...form, address: e.target.value })
+                    }
+                    placeholder="Ej: Av. Principal 123"
+                    className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+                  />
+                </div>
+              </div>
+
               <div className="flex justify-end gap-3 pt-4">
                 <button
                   type="button"
