@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const where: {
       status?: AppointmentStatus;
       vetId?: number;
-      petId?: number;
+      petId?: number | { in: number[] };
       date?: { gte?: Date; lte?: Date };
     } = {};
 
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         select: { id: true },
       });
       const petIds = pets.map(p => p.id);
-      where.petId = { in: petIds.length > 0 ? petIds[0] : 0 };
+      where.petId = { in: petIds };
     }
 
     const appointments = await prisma.appointment.findMany({

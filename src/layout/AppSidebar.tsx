@@ -61,6 +61,16 @@ const othersItems: NavItem[] = [
     path: "/categorias",
   },
   {
+    icon: <GridIcon />,
+    name: "Regiones",
+    path: "/regiones",
+  },
+  {
+    icon: <PlugInIcon />,
+    name: "Comunas",
+    path: "/comunas",
+  },
+  {
     icon: <UserCircleIcon />,
     name: "Usuarios",
     path: "/usuarios",

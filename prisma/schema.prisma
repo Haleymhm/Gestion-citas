@@ -95,3 +95,26 @@ model MedicalRecord {
   pet Pet @relation(fields: [petId], references: [id], onDelete: Cascade)
   vet User @relation(fields: [vetId], references: [id])
 }
+
+model Region {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  comunas   Comuna[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
+
+model Comuna {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  regionId  String
+  region    Region   @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([name])
+}
