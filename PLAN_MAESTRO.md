@@ -58,6 +58,14 @@
 * **RN-18:** Las entradas deben tener un campo `publicNotes` (visible para el dueño) y un campo `privateNotes` (solo para `VET` y `ADMIN`).
 * **RN-19:** Un cliente solo puede ver las entradas del historial de sus propias mascotas.
 * **RN-20:** Un veterinario solo puede editar/eliminar sus propias entradas de historial.
+* **RN-21 (Vacunación):** El calendario de vacunación de cada mascota debe registrar el tipo de vacuna, la fecha de administración y la fecha de la próxima dosis.
+  * **RN-21.1 (Perros):** Se debe registrar la aplicación de la vacuna Óctuple/Séxtuple (Leptospira, Parvovirus, Moquillo, Hepatitis, Parainfluenza) y la vacuna Antirrábica.
+  * **RN-21.2 (Gatos):** Se debe registrar la aplicación de la vacuna Triple Felina (Panleucopenia, Rinotraqueitis, Calicivirus), la vacuna de la Leucemia Felina y la vacuna Antirrábica.
+  * **RN-21.3:** La vacuna Antirrábica es obligatoria para todas las especies y debe registrarse su administración anual.
+* **RN-22 (Desparasitación):** El control de desparasitación debe registrar tanto tratamientos para parásitos internos como externos, incluyendo fecha de aplicación y producto utilizado.
+* **RN-23 (Antecedentes Quirúrgicos):** Se debe llevar un registro de cirugías previas, procedimientos de esterilización/castración y cualquier complicación postoperatoria.
+* **RN-24 (Alergias y Patologías Crónicas):** Debe existir un registro permanente de alergias conocidas (alimentarias, ambientales, farmacológicas) y patologías crónicas diagnosticadas (diabetes, insuficiencia renal, etc.).
+* **RN-25 (Registro de Atenciones):** Cada consulta debe registrar fecha, motivo, constantes fisiológicas (peso, temperatura, frecuencia cardíaca, frecuencia respiratoria) y un espacio para diagnóstico y tratamientos prescritos.
 
 ---
 
@@ -96,19 +104,23 @@ model User {
 }
 
 model Pet {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   name      String
   species   String
   breed     String?
   birthDate DateTime?
   weight    Float?
   ownerId   Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  owner        User          @relation(fields: [ownerId], references: [id])
-  appointments Appointment[]
-  medicalRecords MedicalRecord[]
+  owner            User          @relation(fields: [ownerId], references: [id])
+  appointments     Appointment[]
+  medicalRecords   MedicalRecord[]
+  vaccinations     Vaccination[]
+  dewormingRecords Deworming[]
+  surgicalHistory  SurgicalHistory[]
+  chronicConditions ChronicCondition[]
 }
 
 model Appointment {
@@ -127,17 +139,110 @@ model Appointment {
 }
 
 model MedicalRecord {
-  id           Int      @id @default(autoincrement())
-  title        String
-  publicNotes  String   @db.Text
-  privateNotes String?  @db.Text
-  petId        Int
-  vetId        Int      // Quién creó la entrada
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id             Int           @id @default(autoincrement())
+  date           DateTime      @default(now())  // Fecha de la consulta
+  title          String                       // Motivo de la consulta
+  diagnosis      String?   @db.Text          // Diagnóstico
+  treatment      String?   @db.Text          // Tratamiento prescrito
+  publicNotes    String   @db.Text
+  privateNotes   String?  @db.Text
+  petId          Int
+  vetId          Int       // Quién creó la entrada
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  pet    Pet          @relation(fields: [petId], references: [id])
+  vet    User         @relation(fields: [vetId], references: [id])
+  exams  ExamAttachment[]
+  vitals VitalSigns?
+}
+
+model VitalSigns {
+  id                     Int     @id @default(autoincrement())
+  weight                 Float?
+  temperature            Float?
+  heartRate              Int?
+  respiratoryRate        Int?
+  capillaryRefillTime    String?
+  dehydrationPercentage  Float?
+  mucousMembranes        String?
+  medicalRecordId        Int     @unique
+  medicalRecord          MedicalRecord @relation(fields: [medicalRecordId], references: [id])
+}
+
+model Vaccination {
+  id                Int      @id @default(autoincrement())
+  vaccineName       String
+  vaccineType       String
+  administrationDate DateTime @default(now())
+  nextDoseDate      DateTime?
+  lotNumber         String?
+  manufacturer      String?
+  veterinarian      String?
+  petId             Int
+  createdAt         DateTime @default(now())
+  createdById       Int
 
   pet Pet @relation(fields: [petId], references: [id])
-  vet User @relation(fields: [vetId], references: [id])
+}
+
+model Deworming {
+  id           Int      @id @default(autoincrement())
+  productName  String
+  type         DewormingType
+  dosage       String?
+  date         DateTime @default(now())
+  nextDate     DateTime?
+  petId        Int
+  createdById  Int
+  createdAt    DateTime @default(now())
+
+  pet Pet @relation(fields: [petId], references: [id])
+}
+
+enum DewormingType {
+  INTERNAL
+  EXTERNAL
+  BOTH
+}
+
+model SurgicalHistory {
+  id           Int      @id @default(autoincrement())
+  procedure    String
+  date         DateTime?
+  complicatons String?   @db.Text
+  notes        String?   @db.Text
+  outcomes     String?   @db.Text
+  petId        Int
+  createdAt    DateTime @default(now())
+
+  pet Pet @relation(fields: [petId], references: [id])
+}
+
+model ChronicCondition {
+  id          Int      @id @default(autoincrement())
+  name        String
+  type        String
+  severity    String?
+  diagnosisDate DateTime?
+  notes       String?  @db.Text
+  isActive    Boolean  @default(true)
+  petId       Int
+  createdAt   DateTime @default(now())
+
+  pet Pet @relation(fields: [petId], references: [id])
+}
+
+model ExamAttachment {
+  id              Int      @id @default(autoincrement())
+  fileName        String
+  fileUrl         String
+  fileType        String
+  description     String?
+  medicalRecordId Int
+  createdAt       DateTime @default(now())
+
+  medicalRecord MedicalRecord @relation(fields: [medicalRecordId], references: [id])
 }
 ```
 
@@ -180,9 +285,17 @@ model MedicalRecord {
 
 ### 5.5 Módulo de Historial Médico
 
-1. Desde el perfil de una mascota, el veterinario accede a "Historial".
-2. Crea una nueva entrada con título, notas públicas y privadas.
-3. El cliente, al revisar el perfil de su mascota en el portal, ve solo las entradas y sus `publicNotes`.
+1. **Desde el perfil de una mascota**, el veterinario/admin accede a la pestaña "Historial Médico".
+2. La interfaz se organiza en secciones o pestañas:
+   * **Resumen Sanitario:** Muestra la última información de vacunación y desparasitación, además de alergias/patologías crónicas.
+   * **Vacunación:** Formulario para registrar nueva vacuna (nombre, tipo, fecha, próxima dosis). Lista cronológica de vacunas aplicadas.
+   * **Desparasitación:** Similar a vacunación, con tipo (interno/externo), producto y periodicidad.
+   * **Antecedentes Quirúrgicos:** Registro de cirugías y procedimientos invasivos.
+   * **Registro de Atenciones (Consultas):**
+     * Formulario de nueva atención con: fecha, motivo, constantes fisiológicas (peso, temperatura, FC, FR, etc.), diagnóstico y tratamiento.
+     * Opción para adjuntar exámenes de laboratorio, recetas o imágenes (radiografías).
+     * Notas públicas y privadas.
+3. **En el portal del cliente:** El dueño accede a su mascota y ve un resumen sanitario simplificado, accede a las notas públicas de las consultas y puede ver el calendario de vacunación próximo.
 
 ---
 
@@ -195,7 +308,10 @@ model MedicalRecord {
 | Gestión de Clientes | ✅ | 👁️ Ver (sus pacientes) | ✅ CRUD | ❌ |
 | Gestión de Mascotas | ✅ | ✅ CRUD (sus pacientes) | ✅ Crear/Editar | ✅ Ver sus mascotas |
 | Agendamiento de Citas | ✅ CRUD + Asignar Vets | ✅ Ver/Editar (sus citas) | ✅ CRUD + Confirmar | ✅ Solicitar (Pendiente) |
-| Historial Médico | ✅ Ver/Editar Todo | ✅ CRUD (sus pacientes) | ❌ | ✅ Ver Notas Públicas |
+| Historial Médico (General) | ✅ Ver/Editar Todo | ✅ CRUD (sus pacientes) | ❌ | ✅ Ver Notas Públicas |
+| Vacunación | ✅ Ver/Editar Todo | ✅ CRUD (sus pacientes) | ❌ | ✅ Ver Calendario Próximo |
+| Desparasitación | ✅ Ver/Editar Todo | ✅ CRUD (sus pacientes) | ❌ | ✅ Ver Historial |
+| Antecedentes Quirúrgicos | ✅ Ver/Editar Todo | ✅ CRUD (sus pacientes) | ❌ | ❌ |
 | Configuración | ✅ | ❌ | ❌ | ❌ |
 
 ---
@@ -229,11 +345,40 @@ model MedicalRecord {
 * Desarrollar el flujo de confirmación manual (`PENDING` -> `CONFIRMED`).
 * Desarrollar el portal del cliente para solicitar citas.
 
-### Fase 5: Módulo de Historial Médico (Días 13-14)
+### Fase 5: Módulo de Historial Médico (Días 13-16) ✅ COMPLETADA
 
-* Formulario de creación de entradas (con notas públicas/privadas).
-* Visualización del historial en el perfil de la mascota (staff).
-* Visualización de notas públicas para el cliente.
+**Implementación completada (2026-06-09):**
+
+* **Modelos de datos (Prisma):**
+  * Nuevo enum `DewormingType` (INTERNAL, EXTERNAL, BOTH).
+  * Modelo `VitalSigns` para constantes fisiológicas (peso, temperatura, FC, FR, etc.).
+  * Modelo `ExamAttachment` para adjuntos de exámenes (recetas, radiografías).
+  * Modelo `Vaccination` con campos para tipo de vacuna, fechas y fabricante.
+  * Modelo `Deworming` con tipo de parásito y producto.
+  * Modelo `SurgicalHistory` para antecedentes quirúrgicos.
+  * Modelo `ChronicCondition` para alergias y patologías crónicas.
+  * Actualizado `MedicalRecord` con campos `date`, `diagnosis`, `treatment` y relaciones.
+
+* **API Routes:**
+  * `GET/POST /api/v1/medical-records` - CRUD de atenciones.
+  * `GET/PUT/DELETE /api/v1/medical-records/[id]` - Gestión individual.
+  * `GET/POST /api/v1/medical-records/[id]/exams` - Adjuntos.
+  * `GET/POST /api/v1/pets/[id]/vaccinations` - Vacunas.
+  * `GET/POST /api/v1/pets/[id]/deworming` - Desparasitación.
+  * `GET/POST /api/v1/pets/[id]/surgical-history` - Quirúrgicos.
+  * `GET/POST /api/v1/pets/[id]/chronic-conditions` - Alergias/Patologías.
+
+* **Frontend Admin (`/historial-medico`):**
+  * Selector de mascota.
+  * Tabs: Resumen, Vacunas, Desparasitación, Quirúrgicos, Consultas, Alergias/Patologías.
+  * Dashboard con estadísticas visuales por categoría.
+  * Formularios modales para registrar cada tipo de dato.
+  * Vista detallada de consultas con constantes fisiológicas y notas.
+
+* **Frontend Portal Cliente (`/portal/historial-medico`):**
+  * Selector de mascota del cliente.
+  * Vista simplificada con tabs por categoría.
+  * Solo notas públicas visibles para el cliente.
 
 ### Fase 6: Dashboard y Notificaciones (Días 15-16)
 
