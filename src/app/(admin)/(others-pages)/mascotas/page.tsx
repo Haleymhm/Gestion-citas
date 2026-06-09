@@ -9,6 +9,9 @@ interface Owner {
   email: string;
 }
 
+type Sex = "MALE" | "FEMALE";
+type ReproductiveStatus = "FERTILE" | "STERILIZED" | "CASTRATED";
+
 interface Pet {
   id: number;
   name: string;
@@ -16,6 +19,10 @@ interface Pet {
   breed: string | null;
   birthDate: string | null;
   weight: number | null;
+  sex: Sex | null;
+  reproductiveStatus: ReproductiveStatus | null;
+  specialCharacteristics: string | null;
+  microchipNumber: string | null;
   owner: Owner;
   createdAt: string;
 }
@@ -56,6 +63,10 @@ export default function MascotasPage() {
     breed: "",
     birthDate: "",
     weight: "",
+    sex: "" as Sex | "",
+    reproductiveStatus: "" as ReproductiveStatus | "",
+    specialCharacteristics: "",
+    microchipNumber: "",
     ownerId: "",
   });
 
@@ -104,6 +115,10 @@ export default function MascotasPage() {
       breed: form.breed || null,
       birthDate: form.birthDate || null,
       weight: form.weight ? parseFloat(form.weight) : null,
+      sex: form.sex || null,
+      reproductiveStatus: form.reproductiveStatus || null,
+      specialCharacteristics: form.specialCharacteristics || null,
+      microchipNumber: form.microchipNumber || null,
       ownerId: form.ownerId,
     };
 
@@ -137,6 +152,10 @@ export default function MascotasPage() {
       breed: pet.breed || "",
       birthDate: pet.birthDate ? pet.birthDate.split("T")[0] : "",
       weight: pet.weight ? pet.weight.toString() : "",
+      sex: pet.sex || "",
+      reproductiveStatus: pet.reproductiveStatus || "",
+      specialCharacteristics: pet.specialCharacteristics || "",
+      microchipNumber: pet.microchipNumber || "",
       ownerId: pet.owner.id.toString(),
     });
     setShowModal(true);
@@ -165,8 +184,27 @@ export default function MascotasPage() {
       breed: "",
       birthDate: "",
       weight: "",
+      sex: "",
+      reproductiveStatus: "",
+      specialCharacteristics: "",
+      microchipNumber: "",
       ownerId: "",
     });
+  };
+
+  const getSexLabel = (sex: Sex | null) => {
+    if (!sex) return "-";
+    return sex === "MALE" ? "Macho" : "Hembra";
+  };
+
+  const getReproductiveStatusLabel = (status: ReproductiveStatus | null) => {
+    if (!status) return "-";
+    const labels: Record<ReproductiveStatus, string> = {
+      FERTILE: "Fértil",
+      STERILIZED: "Esterilizado",
+      CASTRATED: "Castrado",
+    };
+    return labels[status];
   };
 
   const getSpeciesIcon = (species: string) => {
@@ -218,6 +256,15 @@ export default function MascotasPage() {
                     Especie / Raza
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Sexo
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Estado Reprod.
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Microchip
+                  </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
                     Propietario
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -231,7 +278,7 @@ export default function MascotasPage() {
               <tbody>
                 {pets.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-6 text-center text-gray-500">
+                    <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
                       No hay mascotas registradas
                     </td>
                   </tr>
@@ -254,6 +301,15 @@ export default function MascotasPage() {
                         {pet.breed && (
                           <div className="text-xs text-gray-400">{pet.breed}</div>
                         )}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                        {getSexLabel(pet.sex)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                        {getReproductiveStatusLabel(pet.reproductiveStatus)}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-mono text-gray-500 dark:text-gray-400">
+                        {pet.microchipNumber || "-"}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
                         {pet.owner.firstName} {pet.owner.lastName}
@@ -286,22 +342,36 @@ export default function MascotasPage() {
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-md p-6 bg-white rounded-lg dark:bg-boxdark">
+          <div className="w-full max-w-lg p-6 bg-white rounded-lg dark:bg-boxdark max-h-[90vh] overflow-y-auto">
             <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
               {editingPet ? "Editar Mascota" : "Nueva Mascota"}
             </h3>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Nombre *
-                </label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Nombre *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                    required
+                    className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Número de Microchip
+                  </label>
+                  <input
+                    type="text"
+                    value={form.microchipNumber}
+                    onChange={(e) => setForm({ ...form, microchipNumber: e.target.value })}
+                    placeholder="Ej: ABC123456789"
+                    className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -337,23 +407,36 @@ export default function MascotasPage() {
                   />
                 </div>
               </div>
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Propietario *
-                </label>
-                <select
-                  value={form.ownerId}
-                  onChange={(e) => setForm({ ...form, ownerId: e.target.value })}
-                  required
-                  className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
-                >
-                  <option value="">Seleccionar cliente</option>
-                  {clients.map((client) => (
-                    <option key={client.id} value={client.id}>
-                      {client.firstName} {client.lastName} ({client.email})
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Sexo
+                  </label>
+                  <select
+                    value={form.sex}
+                    onChange={(e) => setForm({ ...form, sex: e.target.value as Sex | "" })}
+                    className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+                  >
+                    <option value="">Seleccionar</option>
+                    <option value="MALE">Macho</option>
+                    <option value="FEMALE">Hembra</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Estado Reproductivo
+                  </label>
+                  <select
+                    value={form.reproductiveStatus}
+                    onChange={(e) => setForm({ ...form, reproductiveStatus: e.target.value as ReproductiveStatus | "" })}
+                    className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+                  >
+                    <option value="">Seleccionar</option>
+                    <option value="FERTILE">Fértil</option>
+                    <option value="STERILIZED">Esterilizado</option>
+                    <option value="CASTRATED">Castrado</option>
+                  </select>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -381,6 +464,36 @@ export default function MascotasPage() {
                     className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Características Especiales
+                </label>
+                <textarea
+                  value={form.specialCharacteristics}
+                  onChange={(e) => setForm({ ...form, specialCharacteristics: e.target.value })}
+                  rows={3}
+                  placeholder="Ej: Alergias, condiciones médicas, comportamiento especial..."
+                  className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark resize-none"
+                />
+              </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Propietario *
+                </label>
+                <select
+                  value={form.ownerId}
+                  onChange={(e) => setForm({ ...form, ownerId: e.target.value })}
+                  required
+                  className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
+                >
+                  <option value="">Seleccionar cliente</option>
+                  {clients.map((client) => (
+                    <option key={client.id} value={client.id}>
+                      {client.firstName} {client.lastName} ({client.email})
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <button

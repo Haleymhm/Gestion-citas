@@ -64,7 +64,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, species, breed, birthDate, weight } = body;
+    const { name, species, breed, birthDate, weight, sex, reproductiveStatus, specialCharacteristics, microchipNumber } = body;
 
     const existingPet = await prisma.pet.findUnique({
       where: { id: parseInt(id) },
@@ -84,6 +84,10 @@ export async function PUT(
       breed?: string | null;
       birthDate?: Date | null;
       weight?: number | null;
+      sex?: "MALE" | "FEMALE" | null;
+      reproductiveStatus?: "FERTILE" | "STERILIZED" | "CASTRATED" | null;
+      specialCharacteristics?: string | null;
+      microchipNumber?: string | null;
     } = {};
 
     if (name) data.name = name;
@@ -91,6 +95,10 @@ export async function PUT(
     if (breed !== undefined) data.breed = breed || null;
     if (birthDate !== undefined) data.birthDate = birthDate ? new Date(birthDate) : null;
     if (weight !== undefined) data.weight = weight ? parseFloat(weight) : null;
+    if (sex !== undefined) data.sex = sex || null;
+    if (reproductiveStatus !== undefined) data.reproductiveStatus = reproductiveStatus || null;
+    if (specialCharacteristics !== undefined) data.specialCharacteristics = specialCharacteristics || null;
+    if (microchipNumber !== undefined) data.microchipNumber = microchipNumber || null;
 
     const pet = await prisma.pet.update({
       where: { id: parseInt(id) },
