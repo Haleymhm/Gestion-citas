@@ -1,208 +1,204 @@
-# TailAdmin Next.js - Free Next.js Tailwind Admin Dashboard Template
+# VetAppoint - Sistema de Gestión de Citas para Clínicas Veterinarias
 
-TailAdmin is a free and open-source admin dashboard template built on **Next.js and Tailwind CSS** providing developers with everything they need to create a feature-rich and data-driven: back-end, dashboard, or admin panel solution for any sort of web project.
+VetAppoint es un software integral para la gestión de clínicas veterinarias, que permite administrar clientes, mascotas, citas y el historial médico de los pacientes.
 
-![TailAdmin - Next.js Dashboard Preview](./banner.png)
+![VetAppoint](./banner.png)
 
-With TailAdmin Next.js, you get access to all the necessary dashboard UI components, elements, and pages required to build a high-quality and complete dashboard or admin panel. Whether you're building a dashboard or admin panel for a complex web application or a simple website.
+## Funcionalidades
 
-TailAdmin utilizes the powerful features of **Next.js 16** and common features of Next.js such as server-side rendering (SSR), static site generation (SSG), and seamless API route integration. Combined with the advancements of **React 19** and the robustness of **TypeScript**, TailAdmin is the perfect solution to help get your project up and running quickly.
+### Módulos Implementados
 
-## Overview
+- **Autenticación y Roles**: Sistema de autenticación con JWT, roles diferenciados (Admin, Veterinario, Recepcionista, Cliente)
+- **Gestión de Usuarios y Clientes**: CRUD completo de usuarios con validación de RUT chileno
+- **Gestión de Mascotas**: Registro de mascotas con información detallada (especie, raza, estado reproductivo, microchip)
+- **Agendamiento de Citas**: Sistema de citas con calendario (FullCalendar), estados variables, flujo online/offline
+- **Módulo de Historial Médico** (Fase 5 - Completada):
+  - Registro de Vaccunaciones con tipos específicos (Óctuple, Séxtuple, Triple Felina, Antirrábica)
+  - Control de desparasitación (interna y externa)
+  - Antecedentes quirúrgicos
+  - Alergias y patologías crónicas
+  - Registro de consultas con constantes fisiológicas (peso, temperatura, FC, FR)
+  - Notas públicas y privadas
 
-TailAdmin provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and control panels. It's built on:
+### Funcionalidades Pendientes (Fases 6-7)
 
-* Next.js 16.x
-* React 19
-* TypeScript
-* Tailwind CSS V4
+- Dashboard con estadísticas (ApexCharts)
+- Sistema de notificaciones por email (Resend)
+- Recordatorios automáticos de citas
 
-### Quick Links
+## Stack Tecnológico
 
-* [✨ Visit Website](https://tailadmin.com)
-* [📄 Documentation](https://tailadmin.com/docs)
-* [⬇️ Download](https://tailadmin.com/download)
-* [🖌️ Figma Design File (Community Edition)](https://www.figma.com/community/file/1463141366275764364)
-* [⚡ Get PRO Version](https://tailadmin.com/pricing)
+| Capa | Tecnología |
+|------|------------|
+| Framework | Next.js 16.2 (App Router, API Routes) |
+| Lenguaje | TypeScript 5.x |
+| Estilos | Tailwind CSS 4.3 |
+| ORM | Prisma 6.x |
+| Base de Datos | PostgreSQL (Supabase Neon) |
+| Autenticación | Custom JWT (jose) + bcryptjs |
+| Notificaciones | Resend API (pendiente) |
+| UI Components | FullCalendar, ApexCharts |
 
-### Demos
+## Requisitos Previos
 
-* [Free Version](https://nextjs-free-demo.tailadmin.com)
-* [Pro Version](https://nextjs-demo.tailadmin.com)
+- Node.js 18.x o posterior (recomendado Node.js 20+)
+- PostgreSQL (puede usar Supabase Neon para desarrollo)
+- pnpm (o npm/yarn)
 
-### Other Versions
+## Instalación
 
-- [Next.js Version](https://github.com/TailAdmin/free-nextjs-admin-dashboard)
-- [React.js Version](https://github.com/TailAdmin/free-react-tailwind-admin-dashboard)
-- [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
-- [Angular Version](https://github.com/TailAdmin/free-angular-tailwind-dashboard)
-- [Laravel Version](https://github.com/TailAdmin/tailadmin-laravel)
-
-## Installation
-
-### Prerequisites
-
-To get started with TailAdmin, ensure you have the following prerequisites installed and set up:
-
-* Node.js 18.x or later (recommended to use Node.js 20.x or later)
-
-### Cloning the Repository
-
-Clone the repository using the following command:
+1. Clonar el repositorio:
 
 ```bash
-git clone https://github.com/TailAdmin/free-nextjs-admin-dashboard.git
+git clone https://github.com/tu-usuario/Gestion-citas.git
+cd Gestion-citas
 ```
 
-> Windows Users: place the repository near the root of your drive if you face issues while cloning.
+2. Instalar dependencias:
 
-1. Install dependencies:
+```bash
+pnpm install
+# o
+npm install
+```
 
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+3. Configurar variables de entorno:
 
-   > Use `--legacy-peer-deps` flag if you face peer-dependency error during installation.
+```bash
+cp .env.example .env
+```
 
-2. Start the development server:
+Editar `.env` con tus credenciales:
 
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+```env
+DATABASE_URL="postgresql://usuario:password@host:5432/database"
+JWT_SECRET="tu-secret-key-muy-segura"
+RESEND_API_KEY="tu-api-key-de-resend"
+```
 
-## Components
+4. Generar el cliente de Prisma y aplicar migraciones:
 
-TailAdmin is a pre-designed starting point for building a web-based dashboard using Next.js and Tailwind CSS. The template includes:
+```bash
+pnpm prisma generate
+pnpm prisma db push
+```
 
-* Sophisticated and accessible sidebar
-* Data visualization components
-* Profile management and custom 404 page
-* Tables and Charts(Line and Bar)
-* Authentication forms and input elements
-* Alerts, Dropdowns, Modals, Buttons and more
-* Can't forget Dark Mode 🕶️
+5. Iniciar el servidor de desarrollo:
 
-All components are built with React and styled using Tailwind CSS for easy customization.
+```bash
+pnpm dev
+```
 
-## Feature Comparison
+La aplicación estará disponible en `http://localhost:3000`
 
-### Free Version
+## Estructura del Proyecto
 
-* 1 Unique Dashboard
-* 30+ dashboard components
-* 50+ UI elements
-* Basic Figma design files
-* Community support
+```
+src/
+├── app/
+│   ├── (admin)/               # Panel de administración (staff)
+│   │   └── (others-pages)/
+│   │       ├── historial-medico/    # Módulo de historial médico
+│   │       ├── mascotas/           # Gestión de mascotas
+│   │       └── ...
+│   ├── portal/                # Portal del cliente
+│   │   ├── historial-medico/       # Vista del cliente
+│   │   ├── mis-citas/              # Citas del cliente
+│   │   ├── mis-mascotas/           # Mascotas del cliente
+│   │   └── agendar-citas/          # Solicitar nueva cita
+│   ├── api/
+│   │   └── v1/                # API Routes
+│   │       ├── auth/          # Autenticación
+│   │       ├── clients/       # Gestión de clientes
+│   │       ├── pets/          # Mascotas (incluye sub-rutas: vaccinations, deworming, etc.)
+│   │       ├── appointments/  # Citas
+│   │       ├── medical-records/ # Historial médico y consultas
+│   │       └── ...
+│   └── signin/                # Página de inicio de sesión
+├── components/
+│   ├── ui/                   # Componentes UI base
+│   ├── form/                 # Formularios reutilizables
+│   ├── calendar/             # Componente calendario
+│   └── ...
+├── lib/
+│   ├── prisma.ts            # Cliente Prisma
+│   ├── auth-helper.ts       # Helpers de autenticación
+│   └── api-response.ts      # Respuestas API estandarizadas
+├── types/
+│   └── index.ts             # TypeScript DTOs
+└── middleware.ts            # Middleware de autenticación
+```
 
-### Pro Version
+## API Routes
 
-* 7 Unique Dashboards: Analytics, Ecommerce, Marketing, CRM, SaaS, Stocks, Logistics (more coming soon)
-* 500+ dashboard components and UI elements
-* Complete Figma design file
-* Email support
+### Autenticación
+- `POST /api/v1/auth/signup` - Registro de usuarios
+- `POST /api/v1/auth/signin` - Inicio de sesión
+- `POST /api/v1/auth/logout` - Cerrar sesión
+- `GET /api/v1/auth/session` - Obtener sesión actual
 
-To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
+### Gestión de Mascotas
+- `GET/POST /api/v1/pets` - Listar/Crear mascotas
+- `GET/PUT/DELETE /api/v1/pets/[id]` - Gestionar mascota individual
+- `GET/POST /api/v1/pets/[id]/vaccinations` - Vacunas
+- `GET/POST /api/v1/pets/[id]/deworming` - Desparasitación
+- `GET/POST /api/v1/pets/[id]/surgical-history` - Quirúrgicos
+- `GET/POST /api/v1/pets/[id]/chronic-conditions` - Alergias/Patologías
 
-## Changelog
+### Historial Médico
+- `GET/POST /api/v1/medical-records` - Listar/Crear entradas
+- `GET/PUT/DELETE /api/v1/medical-records/[id]` - Gestionar entrada individual
+- `GET/POST /api/v1/medical-records/[id]/exams` - Adjuntos de exámenes
 
-### Version 2.3.0 - [April 28, 2026]
+### Citas
+- `GET/POST /api/v1/appointments` - Listar/Crear citas
+- `GET/PUT/DELETE /api/v1/appointments/[id]` - Gestionar cita individual
 
-- **New Feature**: Added **AI Dashboard** with token usage and revenue tracking.
-- **New Feature**: Added **Sales Dashboard** with retention and multi-channel analytics.
-- **New Feature**: Added **Finance Dashboard** with cashflow and balance management.
-- **New Feature**: Introduced **6 New Layout variations** for improved UI flexibility.
-- **Enhancement**: Integrated **Advanced Data Visualization** with 7+ new chart types.
+## Roles y Permisos
 
-### Version 2.2.3 - [March 15, 2026]
+| Módulo | ADMIN | VET | RECEPTIONIST | CLIENTE |
+|--------|-------|-----|--------------|---------|
+| Dashboard | ✅ | ✅ | ✅ | ✅ |
+| Gestión de Usuarios | ✅ | ❌ | ❌ | ❌ |
+| Gestión de Clientes | ✅ | 👁️ | ✅ | ❌ |
+| Gestión de Mascotas | ✅ | ✅ | ✅ | ✅ |
+| Agendamiento de Citas | ✅ | ✅ | ✅ | ✅ |
+| Historial Médico | ✅ | ✅ | ❌ | ✅ |
 
-* update ESLint configuration and dependencies; upgrade Next.js to version 16.1.6
+## Reglas de Negocio Implementadas
 
-### Version 2.2.2 - [December 30, 2025]
+- **RN-01 a RN-05**: Autenticación y roles
+- **RN-06 a RN-09**: Gestión de mascotas
+- **RN-10 a RN-16**: Agendamiento de citas
+- **RN-17 a RN-25**: Historial médico (completo)
 
-* Fixed date picker positioning and functionality in Statistics Chart.
+## Estado de Desarrollo
 
+| Fase | Descripción | Estado |
+|------|-------------|--------|
+| Fase 1 | Inicialización del template | ✅ Completada |
+| Fase 2 | Modelado de datos y autenticación | ✅ Completada |
+| Fase 3 | Módulos de gestión (usuarios, clientes, mascotas) | ✅ Completada |
+| Fase 4 | Módulo de citas y calendario | ✅ Completada |
+| Fase 5 | Módulo de historial médico | ✅ Completada |
+| Fase 6 | Dashboard y notificaciones | ⏳ Pendiente |
+| Fase 7 | Testing, pulido y despliegue | ⏳ Pendiente |
 
-### Version 2.1.0 - [November 15, 2025]
+## Scripts Disponibles
 
-* Updated to Next.js 16.x
-* Fixed all reported minor bugs
+```bash
+pnpm dev          # Iniciar servidor de desarrollo
+pnpm build        # Compilar para producción
+pnpm start        # Iniciar servidor de producción
+pnpm lint         # Verificar código con ESLint
+pnpm typecheck    # Verificar tipos con TypeScript
+pnpm prisma       # Gestionar migraciones de Prisma
+```
 
-### Version 2.0.2 - [March 25, 2025]
+## Licencia
 
-* Upgraded to Next.js 16.x for [CVE-2025-29927](https://nextjs.org/blog/cve-2025-29927) concerns
-* Included overrides vectormap for packages to prevent peer dependency errors during installation.
-* Migrated from react-flatpickr to flatpickr package for React 19 support
+MIT License
 
-### Version 2.0.1 - [February 27, 2025]
+## Soporte
 
-#### Update Overview
-
-* Upgraded to Tailwind CSS v4 for better performance and efficiency.
-* Updated class usage to match the latest syntax and features.
-* Replaced deprecated class and optimized styles.
-
-#### Next Steps
-
-* Run npm install or yarn install to update dependencies.
-* Check for any style changes or compatibility issues.
-* Refer to the Tailwind CSS v4 [Migration Guide](https://tailwindcss.com/docs/upgrade-guide) on this release. if needed.
-* This update keeps the project up to date with the latest Tailwind improvements. 🚀
-
-### v2.0.0 (February 2025)
-
-A major update focused on Next.js 16 implementation and comprehensive redesign.
-
-#### Major Improvements
-
-* Complete redesign using Next.js 16 App Router and React Server Components
-* Enhanced user interface with Next.js-optimized components
-* Improved responsiveness and accessibility
-* New features including collapsible sidebar, chat screens, and calendar
-* Redesigned authentication using Next.js App Router and server actions
-* Updated data visualization using ApexCharts for React
-
-#### Breaking Changes
-
-* Migrated from Next.js 14 to Next.js 16
-* Chart components now use ApexCharts for React
-* Authentication flow updated to use Server Actions and middleware
-
-[Read more](https://tailadmin.com/docs/update-logs/nextjs) on this release.
-
-### v1.3.4 (July 01, 2024)
-
-* Fixed JSvectormap rendering issues
-
-### v1.3.3 (June 20, 2024)
-
-* Fixed build error related to Loader component
-
-### v1.3.2 (June 19, 2024)
-
-* Added ClickOutside component for dropdown menus
-* Refactored sidebar components
-* Updated Jsvectormap package
-
-### v1.3.1 (Feb 12, 2024)
-
-* Fixed layout naming consistency
-* Updated styles
-
-### v1.3.0 (Feb 05, 2024)
-
-* Upgraded to Next.js 14
-* Added Flatpickr integration
-* Improved form elements
-* Enhanced multiselect functionality
-* Added default layout component
-
-## License
-
-TailAdmin Next.js Free Version is released under the MIT License.
-
-## Support
-If you find this project helpful, please consider giving it a star on GitHub. Your support helps us continue developing and maintaining this template.
+Para reportar issues o contribuir al proyecto, por favor crea un pull request o abre un issue en el repositorio.

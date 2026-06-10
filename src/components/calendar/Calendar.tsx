@@ -107,12 +107,19 @@ export default function Calendar() {
   };
 
   const fetchCategories = async () => {
+    console.log("fetchCategories called");
     try {
       const res = await fetch("/api/v1/categories");
+      console.log("fetchCategories response status:", res.status);
       const data = await res.json();
-      if (data.success && data.data.length > 0) {
-        setCategories(data.data);
-        setForm((prev) => ({ ...prev, categoryId: data.data[0].id }));
+      console.log("Categories response:", JSON.stringify(data));
+      if (data.success) {
+        setCategories(data.data || []);
+        if (data.data && data.data.length > 0) {
+          setForm((prev) => ({ ...prev, categoryId: data.data[0].id }));
+        }
+      } else {
+        console.error("Categories API error:", data.error);
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -379,6 +386,7 @@ export default function Calendar() {
                   required
                   className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-boxdark border-gray-300 dark:border-strokedark"
                 >
+                  <option value="">Seleccionar categoría</option>
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
