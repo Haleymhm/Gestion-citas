@@ -30,7 +30,7 @@ export default function AuthLayout({
                   />
                 </Link>
                 <p className="text-center text-gray-400 dark:text-white/60">
-                  Free and Open-Source Tailwind CSS Admin Dashboard Template
+                  Sistema de gestión de citas veterinarias para clínicas y veterinarios. Administra tus citas, clientes y mascotas de manera eficiente con nuestra plataforma fácil de usar.
                 </p>
               </div>
             </div>

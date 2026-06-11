@@ -75,12 +75,12 @@ export default function PortalLayout({
                 >
                   Mis Citas
                 </Link>
-                <Link
+                {/* <Link
                   href="/portal/mis-mascotas"
                   className="text-sm font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300"
                 >
                   Mis Mascotas
-                </Link>
+                </Link> */}
                 <Link
                   href="/portal/agendar-citas"
                   className="text-sm font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300"
