@@ -107,19 +107,14 @@ export default function Calendar() {
   };
 
   const fetchCategories = async () => {
-    console.log("fetchCategories called");
     try {
       const res = await fetch("/api/v1/categories");
-      console.log("fetchCategories response status:", res.status);
       const data = await res.json();
-      console.log("Categories response:", JSON.stringify(data));
       if (data.success) {
         setCategories(data.data || []);
         if (data.data && data.data.length > 0) {
           setForm((prev) => ({ ...prev, categoryId: data.data[0].id }));
         }
-      } else {
-        console.error("Categories API error:", data.error);
       }
     } catch (error) {
       console.error("Error fetching categories:", error);

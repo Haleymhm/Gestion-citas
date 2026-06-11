@@ -6,7 +6,6 @@ import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser();
-    console.log("Categories API - user:", user);
     if (!user) {
       return unauthorizedResponse();
     }
@@ -14,11 +13,9 @@ export async function GET(request: NextRequest) {
     const categories = await prisma.category.findMany({
       orderBy: { name: 'asc' },
     });
-    console.log("Categories found:", categories.length);
 
     return successResponse(categories);
   } catch (error) {
-    console.error("Error in categories GET:", error);
     return errorResponse('Error al obtener categorías', 500);
   }
 }
