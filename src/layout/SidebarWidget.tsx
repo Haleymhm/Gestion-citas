@@ -10,7 +10,7 @@ export default function SidebarWidget() {
         #1 Gestion Veterinaria
       </h3>
       <p className="mb-4 text-gray-500 text-theme-sm dark:text-gray-400">
-        Sistema de gestión de citas veterinarias
+        Sistema de gestión de citas veterinariasS
       </p>
       <a
         href="https://tailadmin.com/pricing"
