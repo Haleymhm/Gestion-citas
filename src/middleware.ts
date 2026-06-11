@@ -15,8 +15,9 @@ interface JWTPayload {
 }
 
 const PUBLIC_PATHS = ['/signin', '/signup', '/api/v1/auth/login', '/api/v1/auth/register'];
+const AUTH_API_PATHS = ['/api/v1/auth/session', '/api/v1/auth/logout'];
 const ADMIN_ONLY_PATHS = ['/usuarios'];
-const STAFF_PATHS = ['/', '/calendar', '/categorias', '/clientes', '/mascotas', '/historial-medico', '/regiones', '/comunas'];
+const STAFF_PATHS = ['/calendar', '/categorias', '/clientes', '/mascotas', '/historial-medico', '/regiones', '/comunas'];
 const VET_PATHS = ['/historial-medico'];
 
 export async function middleware(request: NextRequest) {
@@ -27,6 +28,10 @@ export async function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith('/api/v1/auth/logout')) {
+    return NextResponse.next();
+  }
+
+  if (AUTH_API_PATHS.some(path => pathname.startsWith(path))) {
     return NextResponse.next();
   }
 

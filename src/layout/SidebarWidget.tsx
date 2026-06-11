@@ -10,7 +10,7 @@ export default function SidebarWidget() {
         #1 Gestion Veterinaria
       </h3>
       <p className="mb-4 text-gray-500 text-theme-sm dark:text-gray-400">
-        Sistema de gestión de citas veterinariasS
+        Sistema de gestión de citas veterinarias para clínicas y veterinarios. Administra tus citas, clientes y mascotas de manera eficiente con nuestra plataforma fácil de usar.
       </p>
       <a
         href="https://tailadmin.com/pricing"
