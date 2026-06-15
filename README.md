@@ -19,6 +19,14 @@ VetAppoint es un software integral para la gestión de clínicas veterinarias, q
   - Alergias y patologías crónicas
   - Registro de consultas con constantes fisiológicas (peso, temperatura, FC, FR)
   - Notas públicas y privadas
+- **Generación de PDF de Historial Médico** (Nueva funcionalidad):
+  - Exportación completa del historial médico en formato PDF
+  - Incluye: datos de mascota/propietario, vacunas, desparasitaciones, quirúrgicos, alergias/patologías y consultas
+  - Disponible tanto en panel admin como en portal del cliente
+- **Gestión de Citas Pendientes** (Nueva funcionalidad):
+  - Panel de notificaciones en el calendario con conteo de citas pendientes
+  - Modal interactivo para confirmar o cancelar citas pendientes de forma rápida
+  - Integración directa con el flujo de reversa de citas del cliente
 
 ### Funcionalidades Pendientes (Fases 6-7)
 
@@ -38,6 +46,7 @@ VetAppoint es un software integral para la gestión de clínicas veterinarias, q
 | Autenticación | Custom JWT (jose) + bcryptjs |
 | Notificaciones | Resend API (pendiente) |
 | UI Components | FullCalendar, ApexCharts |
+| Generación PDF | jsPDF + jspdf-autotable |
 
 ## Requisitos Previos
 
@@ -91,6 +100,71 @@ pnpm dev
 
 La aplicación estará disponible en `http://localhost:3000`
 
+## Modelo de Datos
+
+El esquema de base de datos está definido en `prisma/schema.prisma` con los siguientes modelos principales:
+
+### Modelos de Usuario y Autenticación
+
+- **User**: Usuarios del sistema con roles (ADMIN, VET, RECEPTIONIST, CLIENT)
+- Campos: id, email, password, firstName, lastName, rut, phone, address, regionId, comunaId, role
+
+### Modelos de Geografía
+
+- **Region**: Regiones chilenas
+- **Comuna**: Comunas asociadas a regiones
+
+### Modelos de Negocio
+
+- **Pet**: Mascotas registradas
+  - Campos: id, name, species, breed, birthDate, weight, sex, reproductiveStatus, specialCharacteristics, microchipNumber, ownerId
+
+- **Appointment**: Citas del sistema
+  - Estados: PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
+  - Campos: id, date, reason, status, notes, petId, vetId, categoryId
+
+- **Category**: Categorías de citas (vacunación, cirugía, consulta general, etc.)
+  - Campos: id, name, color
+
+- **MedicalRecord**: Registros de consultas médicas
+  - Campos: id, date, title, diagnosis, treatment, publicNotes, privateNotes, petId, vetId
+
+- **VitalSigns**: Signos vitales de cada consulta
+  - Campos: id, weight, temperature, heartRate, respiratoryRate, capillaryRefillTime, dehydrationPercentage, mucousMembranes, medicalRecordId
+
+- **ExamAttachment**: Archivos adjuntos de exámenes
+  - Campos: id, fileName, fileUrl, fileType, description, medicalRecordId
+
+- **Vaccination**: Registro de vacunas
+  - Campos: id, vaccineName, vaccineType, administrationDate, nextDoseDate, lotNumber, manufacturer, veterinarian, petId, createdById
+
+- **Deworming**: Registro de desparasitaciones
+  - Tipos: INTERNAL, EXTERNAL, BOTH
+  - Campos: id, productName, type, dosage, date, nextDate, petId, createdById
+
+- **SurgicalHistory**: Antecedentes quirúrgicos
+  - Campos: id, procedure, date, complications, notes, outcomes, petId
+
+- **ChronicCondition**: Alergias y patologías crónicas
+  - Campos: id, name, type, severity, diagnosisDate, notes, isActive, petId
+
+### Relaciones entre Modelos
+
+```
+User (owner) 1──N Pet
+Pet 1──N Appointment
+Pet 1──N MedicalRecord
+Pet 1──N Vaccination
+Pet 1──N Deworming
+Pet 1──N SurgicalHistory
+Pet 1──N ChronicCondition
+MedicalRecord 1──1 VitalSigns
+MedicalRecord 1──N ExamAttachment
+Appointment N──1 Pet
+Appointment N──1 User (vet)
+Appointment N──1 Category
+```
+
 ## Estructura del Proyecto
 
 ```
@@ -123,7 +197,8 @@ src/
 ├── lib/
 │   ├── prisma.ts            # Cliente Prisma
 │   ├── auth-helper.ts       # Helpers de autenticación
-│   └── api-response.ts      # Respuestas API estandarizadas
+│   ├── api-response.ts      # Respuestas API estandarizadas
+│   └── medical-history-pdf.ts # Generación de PDF del historial médico
 ├── types/
 │   └── index.ts             # TypeScript DTOs
 └── middleware.ts            # Middleware de autenticación
@@ -132,10 +207,21 @@ src/
 ## API Routes
 
 ### Autenticación
-- `POST /api/v1/auth/signup` - Registro de usuarios
-- `POST /api/v1/auth/signin` - Inicio de sesión
+- `POST /api/v1/auth/register` - Registro de usuarios
+- `POST /api/v1/auth/login` - Inicio de sesión
 - `POST /api/v1/auth/logout` - Cerrar sesión
 - `GET /api/v1/auth/session` - Obtener sesión actual
+
+### Gestión de Usuarios
+- `GET/POST /api/v1/users` - Listar/Crear usuarios
+- `GET/PUT/DELETE /api/v1/users/[id]` - Gestionar usuario individual
+
+### Gestión de Clientes
+- `GET/POST /api/v1/clients` - Listar/Crear clientes
+- `GET/PUT/DELETE /api/v1/clients/[id]` - Gestionar cliente individual
+
+### Gestión de Veterinarios
+- `GET /api/v1/vets` - Listar veterinarios disponibles
 
 ### Gestión de Mascotas
 - `GET/POST /api/v1/pets` - Listar/Crear mascotas
@@ -154,6 +240,14 @@ src/
 - `GET/POST /api/v1/appointments` - Listar/Crear citas
 - `GET/PUT/DELETE /api/v1/appointments/[id]` - Gestionar cita individual
 
+### Categorías
+- `GET/POST /api/v1/categories` - Listar/Crear categorías
+- `GET/PUT/DELETE /api/v1/categories/[id]` - Gestionar categoría individual
+
+### Regiones y Comunas
+- `GET/POST /api/v1/regions` - Listar/Crear regiones
+- `GET/POST /api/v1/comunas` - Listar/Crear comunas
+
 ## Roles y Permisos
 
 | Módulo | ADMIN | VET | RECEPTIONIST | CLIENTE |
@@ -163,7 +257,9 @@ src/
 | Gestión de Clientes | ✅ | 👁️ | ✅ | ❌ |
 | Gestión de Mascotas | ✅ | ✅ | ✅ | ✅ |
 | Agendamiento de Citas | ✅ | ✅ | ✅ | ✅ |
+| Confirmar/Cancelar Citas | ✅ | ✅ | ✅ | ❌ |
 | Historial Médico | ✅ | ✅ | ❌ | ✅ |
+| Exportar PDF | ✅ | ✅ | ❌ | ✅ |
 
 ## Reglas de Negocio Implementadas
 
@@ -171,6 +267,22 @@ src/
 - **RN-06 a RN-09**: Gestión de mascotas
 - **RN-10 a RN-16**: Agendamiento de citas
 - **RN-17 a RN-25**: Historial médico (completo)
+
+## Flujo de Citas
+
+### Creación de Citas
+1. El **cliente** solicita cita a través del portal
+2. La cita se crea con estado `PENDING` (pendiente de confirmación)
+3. El **staff** (admin/vet/receptionist) visualiza la cita en el calendario
+4. Al hacer click en el banner de notificaciones, se abre un modal con todas las citas pendientes
+5. El staff puede **confirmar** o **cancelar** la cita directamente desde el modal
+
+### Estados de Cita
+- `PENDING`: Esperando confirmación del staff
+- `CONFIRMED`: Confirmada, lista para la fecha scheduled
+- `COMPLETED`: La cita se realizó exitosamente
+- `CANCELLED`: La cita fue cancelada (por staff o por reversa del cliente)
+- `NO_SHOW`: El cliente no asistió a la cita
 
 ## Estado de Desarrollo
 
@@ -181,6 +293,8 @@ src/
 | Fase 3 | Módulos de gestión (usuarios, clientes, mascotas) | ✅ Completada |
 | Fase 4 | Módulo de citas y calendario | ✅ Completada |
 | Fase 5 | Módulo de historial médico | ✅ Completada |
+| Fase 5.1 | Generación de PDF del historial médico | ✅ Completada |
+| Fase 5.2 | Modal de confirmación de citas pendientes | ✅ Completada |
 | Fase 6 | Dashboard y notificaciones | ⏳ Pendiente |
 | Fase 7 | Testing, pulido y despliegue | ⏳ Pendiente |
 
