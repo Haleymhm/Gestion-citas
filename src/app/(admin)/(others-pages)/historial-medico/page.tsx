@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { generateMedicalHistoryPDF } from "@/lib/medical-history-pdf";
 
 type DewormingType = "INTERNAL" | "EXTERNAL" | "BOTH";
 
@@ -304,6 +305,64 @@ export default function HistorialMedicoPage() {
 
   const selectedPet = pets.find((p) => p.id === selectedPetId);
 
+  const handleDownloadPDF = () => {
+    if (!selectedPet) return;
+
+    const pdfData = {
+      pet: {
+        id: selectedPet.id,
+        name: selectedPet.name,
+        species: selectedPet.species,
+        breed: selectedPet.breed,
+        birthDate: null,
+        weight: null,
+        sex: null,
+        owner: selectedPet.owner,
+      },
+      vaccinations: vaccinations.map((v) => ({
+        vaccineName: v.vaccineName,
+        vaccineType: v.vaccineType,
+        administrationDate: v.administrationDate,
+        nextDoseDate: v.nextDoseDate,
+        lotNumber: v.lotNumber,
+        manufacturer: v.manufacturer,
+      })),
+      deworming: dewormingRecords.map((d) => ({
+        productName: d.productName,
+        type: d.type,
+        date: d.date,
+        nextDate: d.nextDate,
+        dosage: d.dosage,
+      })),
+      surgicalHistory: surgicalHistory.map((s) => ({
+        procedure: s.procedure,
+        date: s.date,
+        complications: s.complications,
+        notes: s.notes,
+      })),
+      chronicConditions: chronicConditions.map((c) => ({
+        name: c.name,
+        type: c.type,
+        severity: c.severity,
+        diagnosisDate: c.diagnosisDate,
+        notes: c.notes,
+        isActive: c.isActive,
+      })),
+      medicalRecords: medicalRecords.map((m) => ({
+        id: m.id,
+        date: m.date,
+        title: m.title,
+        diagnosis: m.diagnosis,
+        treatment: m.treatment,
+        publicNotes: m.publicNotes,
+        vet: m.vet,
+        vitals: m.vitals,
+      })),
+    };
+
+    generateMedicalHistoryPDF(pdfData);
+  };
+
   const tabs: { key: TabType; label: string }[] = [
     { key: "resumen", label: "Resumen" },
     { key: "vacunas", label: "Vacunas" },
@@ -332,6 +391,17 @@ export default function HistorialMedicoPage() {
               </option>
             ))}
           </select>
+          {selectedPetId && (
+            <button
+              onClick={handleDownloadPDF}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Descargar PDF
+            </button>
+          )}
         </div>
       </div>
 
