@@ -73,6 +73,7 @@ export default function Calendar() {
   const [allPets, setAllPets] = useState<Pet[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showPendingModal, setShowPendingModal] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
   const calendarRef = useRef<FullCalendar>(null);
@@ -271,11 +272,14 @@ export default function Calendar() {
   return (
     <div className="space-y-4">
       {pendingCount > 0 && (
-        <div className="p-4 mb-4 bg-amber-50 border border-amber-200 rounded-lg dark:bg-amber-900/20 dark:border-amber-800">
+        <button
+          onClick={() => setShowPendingModal(true)}
+          className="w-full p-4 mb-4 text-left bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 dark:bg-amber-900/20 dark:border-amber-800 dark:hover:bg-amber-900/30 transition-colors cursor-pointer"
+        >
           <p className="text-sm text-amber-800 dark:text-amber-200">
-            <strong>{pendingCount}</strong> cita{pendingCount > 1 ? "s" : ""} pendiente{pendingCount > 1 ? "s" : ""} de confirmar
+            <strong>{pendingCount}</strong> cita{pendingCount > 1 ? "s" : ""} pendiente{pendingCount > 1 ? "s" : ""} de confirmar - Click para ver
           </p>
-        </div>
+        </button>
       )}
 
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxgray p-4">
@@ -567,6 +571,111 @@ export default function Calendar() {
                   setShowDetailModal(false);
                   setSelectedAppointment(null);
                 }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-400 dark:border-strokedark dark:hover:bg-white/5"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPendingModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="w-full max-w-2xl p-6 bg-white rounded-lg dark:bg-boxdark max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+                Citas Pendientes de Confirmar ({pendingCount})
+              </h3>
+              <button
+                onClick={() => setShowPendingModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {appointments.filter((a) => a.status === "PENDING").length === 0 ? (
+              <p className="text-center text-gray-500 py-8">No hay citas pendientes</p>
+            ) : (
+              <div className="space-y-3">
+                {appointments
+                  .filter((a) => a.status === "PENDING")
+                  .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+                  .map((apt) => (
+                    <div
+                      key={apt.id}
+                      className="p-4 border border-stroke rounded-lg dark:border-strokedark bg-white dark:bg-boxgray hover:border-amber-300 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span
+                              className="px-2 py-0.5 text-xs font-medium rounded-full"
+                              style={{
+                                backgroundColor: `${apt.category?.color || "#6b7280"}20`,
+                                color: apt.category?.color || "#6b7280",
+                              }}
+                            >
+                              {apt.category?.name || "Sin categoría"}
+                            </span>
+                            <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                              Pendiente
+                            </span>
+                          </div>
+                          <p className="font-medium text-gray-800 dark:text-white/90">
+                            {apt.pet?.name} - {apt.reason}
+                          </p>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Cliente: {apt.pet?.owner?.firstName} {apt.pet?.owner?.lastName}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {new Date(apt.date).toLocaleString("es-ES", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            })}
+                          </p>
+                          {apt.notes && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 italic">
+                              Nota: {apt.notes}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex flex-col gap-2 ml-4">
+                          <button
+                            onClick={() => handleStatusChange(apt.id, "CONFIRMED")}
+                            className="px-3 py-1.5 text-sm font-medium text-white bg-green-500 rounded hover:bg-green-600 whitespace-nowrap"
+                          >
+                            Confirmar
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(apt.id, "CANCELLED")}
+                            className="px-3 py-1.5 text-sm font-medium text-white bg-red-500 rounded hover:bg-red-600 whitespace-nowrap"
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedAppointment(apt);
+                              setShowPendingModal(false);
+                              setShowDetailModal(true);
+                            }}
+                            className="px-3 py-1.5 text-sm font-medium text-gray-700 border border-gray-300 rounded hover:bg-gray-50 dark:text-gray-400 dark:border-strokedark dark:hover:bg-white/5 whitespace-nowrap"
+                          >
+                            Ver Detalle
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            )}
+
+            <div className="flex justify-end mt-6 pt-4 border-t border-stroke dark:border-strokedark">
+              <button
+                onClick={() => setShowPendingModal(false)}
                 className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 dark:text-gray-400 dark:border-strokedark dark:hover:bg-white/5"
               >
                 Cerrar

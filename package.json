@@ -29,6 +29,8 @@
     "bcryptjs": "^3.0.3",
     "flatpickr": "^4.6.13",
     "jose": "^6.2.3",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "next": "^16.1.6",
     "prisma": "^6.19.3",
     "react": "^19.2.0",

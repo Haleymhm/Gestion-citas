@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { generateMedicalHistoryPDF } from "@/lib/medical-history-pdf";
 
 interface Pet {
   id: number;
@@ -139,6 +140,59 @@ export default function HistorialMedicoPage() {
 
   const selectedPet = pets.find((p) => p.id === selectedPetId);
 
+  const handleDownloadPDF = () => {
+    if (!selectedPet) return;
+
+    const pdfData = {
+      pet: {
+        id: selectedPet.id,
+        name: selectedPet.name,
+        species: selectedPet.species,
+        breed: selectedPet.breed,
+        birthDate: null,
+        weight: null,
+        sex: null,
+        owner: { firstName: "", lastName: "", email: "" },
+      },
+      vaccinations: vaccinations.map((v) => ({
+        vaccineName: v.vaccineName,
+        vaccineType: v.vaccineType,
+        administrationDate: v.administrationDate,
+        nextDoseDate: v.nextDoseDate,
+        lotNumber: null,
+        manufacturer: null,
+      })),
+      deworming: dewormingRecords.map((d) => ({
+        productName: d.productName,
+        type: d.type,
+        date: d.date,
+        nextDate: d.nextDate,
+        dosage: null,
+      })),
+      surgicalHistory: [],
+      chronicConditions: chronicConditions.map((c) => ({
+        name: c.name,
+        type: c.type,
+        severity: c.severity,
+        diagnosisDate: null,
+        notes: c.notes,
+        isActive: c.isActive,
+      })),
+      medicalRecords: medicalRecords.map((m) => ({
+        id: m.id,
+        date: m.date,
+        title: m.title,
+        diagnosis: m.diagnosis,
+        treatment: m.treatment,
+        publicNotes: m.publicNotes,
+        vet: m.vet,
+        vitals: m.vitals,
+      })),
+    };
+
+    generateMedicalHistoryPDF(pdfData);
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800 dark:text-white/90 mb-6">
@@ -146,7 +200,7 @@ export default function HistorialMedicoPage() {
       </h1>
 
       {pets.length > 0 && (
-        <div className="mb-6">
+        <div className="mb-6 flex items-center gap-4">
           <select
             value={selectedPetId || ""}
             onChange={(e) => setSelectedPetId(e.target.value ? parseInt(e.target.value) : null)}
@@ -158,6 +212,15 @@ export default function HistorialMedicoPage() {
               </option>
             ))}
           </select>
+          <button
+            onClick={handleDownloadPDF}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Descargar PDF
+          </button>
         </div>
       )}
 
