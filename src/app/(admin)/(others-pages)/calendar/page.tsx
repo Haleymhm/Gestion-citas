@@ -2,7 +2,7 @@ import { Metadata } from "next";
 import Calendar from "@/components/calendar/Calendar";
 
 export const metadata: Metadata = {
-  title: "Calendario | VetAppoint",
+  title: "Calendario | VeteriApp Gestión Integral Veterinaria",
   description: "Calendario de citas de la veterinaria",
 };
 

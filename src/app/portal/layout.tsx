@@ -66,7 +66,7 @@ export default function PortalLayout({
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-8">
               <Link href="/portal/mis-citas" className="flex items-center">
-                <span className="text-xl font-bold text-brand-500">VetAppoint</span>
+                <span className="text-xl font-bold text-brand-500">VeteriApp Gestión Integral Veterinaria</span>
               </Link>
               <nav className="hidden md:flex gap-6">
                 <Link
