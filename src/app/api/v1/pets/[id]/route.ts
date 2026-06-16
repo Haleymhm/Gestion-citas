@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -78,6 +79,18 @@ export async function PUT(
       return forbiddenResponse();
     }
 
+    const previousData: Record<string, unknown> = {
+      name: existingPet.name,
+      species: existingPet.species,
+      breed: existingPet.breed,
+      birthDate: existingPet.birthDate,
+      weight: existingPet.weight,
+      sex: existingPet.sex,
+      reproductiveStatus: existingPet.reproductiveStatus,
+      specialCharacteristics: existingPet.specialCharacteristics,
+      microchipNumber: existingPet.microchipNumber,
+    };
+
     const data: {
       name?: string;
       species?: string;
@@ -115,6 +128,17 @@ export async function PUT(
       },
     });
 
+    await createAuditLog({
+      user,
+      action: 'UPDATE',
+      module: 'Pet',
+      entityId: String(pet.id),
+      entityType: 'Pet',
+      ipAddress: await getClientIp(request),
+      previousData,
+      newData: data,
+    });
+
     return successResponse(pet, 'Mascota actualizada exitosamente');
   } catch (error) {
     if (error instanceof Error && error.message === 'No autorizado') {
@@ -133,7 +157,30 @@ export async function DELETE(
 ) {
   try {
     await requireStaff();
+    const user = await getCurrentUser();
+    if (!user) {
+      return unauthorizedResponse();
+    }
+
     const { id } = await params;
+
+    const existing = await prisma.pet.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!existing) {
+      return notFoundResponse('Mascota');
+    }
+
+    await createAuditLog({
+      user,
+      action: 'DELETE',
+      module: 'Pet',
+      entityId: String(existing.id),
+      entityType: 'Pet',
+      ipAddress: await getClientIp(request),
+      previousData: existing as Record<string, unknown>,
+    });
 
     await prisma.pet.delete({
       where: { id: parseInt(id) },

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -91,19 +92,21 @@ export async function POST(request: NextRequest) {
       return errorResponse('ownerId es requerido');
     }
 
+    const createData = {
+      name,
+      species,
+      breed: breed || null,
+      birthDate: birthDate ? new Date(birthDate) : null,
+      weight: weight ? parseFloat(weight) : null,
+      sex: sex || null,
+      reproductiveStatus: reproductiveStatus || null,
+      specialCharacteristics: specialCharacteristics || null,
+      microchipNumber: microchipNumber || null,
+      ownerId: petOwnerId,
+    };
+
     const pet = await prisma.pet.create({
-      data: {
-        name,
-        species,
-        breed: breed || null,
-        birthDate: birthDate ? new Date(birthDate) : null,
-        weight: weight ? parseFloat(weight) : null,
-        sex: sex || null,
-        reproductiveStatus: reproductiveStatus || null,
-        specialCharacteristics: specialCharacteristics || null,
-        microchipNumber: microchipNumber || null,
-        ownerId: petOwnerId,
-      },
+      data: createData,
       include: {
         owner: {
           select: {
@@ -114,6 +117,16 @@ export async function POST(request: NextRequest) {
           },
         },
       },
+    });
+
+    await createAuditLog({
+      user,
+      action: 'CREATE',
+      module: 'Pet',
+      entityId: String(pet.id),
+      entityType: 'Pet',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(pet, 'Mascota creada exitosamente', 201);

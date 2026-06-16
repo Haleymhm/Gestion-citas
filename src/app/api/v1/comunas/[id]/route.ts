@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/auth-helper';
+import { requireAdmin, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -31,7 +32,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const currentUser = await requireAdmin();
 
     const { id } = await params;
     const body = await request.json();
@@ -44,6 +45,12 @@ export async function PUT(
     if (!existingComuna) {
       return notFoundResponse('Comuna');
     }
+
+    const previousData: Record<string, unknown> = {
+      code: existingComuna.code,
+      name: existingComuna.name,
+      regionId: existingComuna.regionId,
+    };
 
     const data: { code?: string; name?: string; regionId?: string } = {};
 
@@ -76,6 +83,17 @@ export async function PUT(
       include: { region: true },
     });
 
+    await createAuditLog({
+      user: currentUser,
+      action: 'UPDATE',
+      module: 'Comuna',
+      entityId: String(updatedComuna.id),
+      entityType: 'Comuna',
+      ipAddress: await getClientIp(request),
+      previousData,
+      newData: data,
+    });
+
     return successResponse(updatedComuna, 'Comuna actualizada exitosamente');
   } catch (error) {
     if (error instanceof Error && error.message === 'No autorizado') {
@@ -94,7 +112,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const currentUser = await requireAdmin();
     const { id } = await params;
 
     const existingComuna = await prisma.comuna.findUnique({
@@ -104,6 +122,16 @@ export async function DELETE(
     if (!existingComuna) {
       return notFoundResponse('Comuna');
     }
+
+    await createAuditLog({
+      user: currentUser,
+      action: 'DELETE',
+      module: 'Comuna',
+      entityId: String(existingComuna.id),
+      entityType: 'Comuna',
+      ipAddress: await getClientIp(request),
+      previousData: existingComuna as Record<string, unknown>,
+    });
 
     await prisma.comuna.delete({
       where: { id },

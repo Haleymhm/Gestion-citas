@@ -80,6 +80,11 @@ const othersItems: NavItem[] = [
     name: "Mi Perfil",
     path: "/profile",
   },
+  {
+    icon: <TableIcon />,
+    name: "Registro de Auditoría",
+    path: "/audit-logs",
+  },
 ];
 
 const AppSidebar: React.FC = () => {

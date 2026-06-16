@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
-import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,11 +41,20 @@ export async function POST(request: NextRequest) {
       return errorResponse('Nombre y color son requeridos');
     }
 
+    const createData = { name, color };
+
     const category = await prisma.category.create({
-      data: {
-        name,
-        color,
-      },
+      data: createData,
+    });
+
+    await createAuditLog({
+      user,
+      action: 'CREATE',
+      module: 'Category',
+      entityId: String(category.id),
+      entityType: 'Category',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(category, 'Categoría creada exitosamente', 201);

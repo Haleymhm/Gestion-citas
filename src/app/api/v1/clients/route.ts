@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
-import { requireStaff } from '@/lib/auth-helper';
+import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -88,7 +89,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireStaff();
+    const currentUser = await requireStaff();
 
     const body = await request.json();
     const { email, password, firstName, lastName, rut, phone, address, regionId, comunaId } = body;
@@ -113,19 +114,21 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const createData = {
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      rut,
+      phone: phone || null,
+      address: address || null,
+      regionId: regionId || null,
+      comunaId: comunaId || null,
+      role: 'CLIENT' as const,
+    };
+
     const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        rut,
-        phone: phone || null,
-        address: address || null,
-        regionId: regionId || null,
-        comunaId: comunaId || null,
-        role: 'CLIENT',
-      },
+      data: createData,
       select: {
         id: true,
         email: true,
@@ -139,6 +142,16 @@ export async function POST(request: NextRequest) {
         role: true,
         createdAt: true,
       },
+    });
+
+    await createAuditLog({
+      user: currentUser,
+      action: 'CREATE',
+      module: 'Client',
+      entityId: String(user.id),
+      entityType: 'User',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(user, 'Cliente creado exitosamente', 201);

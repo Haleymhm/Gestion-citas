@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 import type { AppointmentStatus } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
@@ -143,16 +144,18 @@ export async function POST(request: NextRequest) {
 
     const appointmentStatus: AppointmentStatus = user.role === 'CLIENT' ? 'PENDING' : (status || 'CONFIRMED');
 
+    const createData = {
+      date: appointmentDate,
+      reason,
+      categoryId,
+      status: appointmentStatus,
+      notes: notes || null,
+      petId: parseInt(petId),
+      vetId: vetId ? parseInt(vetId) : null,
+    };
+
     const appointment = await prisma.appointment.create({
-      data: {
-        date: appointmentDate,
-        reason,
-        categoryId,
-        status: appointmentStatus,
-        notes: notes || null,
-        petId: parseInt(petId),
-        vetId: vetId ? parseInt(vetId) : null,
-      },
+      data: createData,
       include: {
         category: true,
         pet: {
@@ -175,6 +178,16 @@ export async function POST(request: NextRequest) {
           },
         },
       },
+    });
+
+    await createAuditLog({
+      user,
+      action: 'CREATE',
+      module: 'Appointment',
+      entityId: String(appointment.id),
+      entityType: 'Appointment',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(appointment, 'Cita creada exitosamente', 201);

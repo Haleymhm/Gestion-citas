@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/auth-helper';
+import { requireAdmin, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -31,7 +32,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const currentUser = await requireAdmin();
 
     const { id } = await params;
     const body = await request.json();
@@ -44,6 +45,11 @@ export async function PUT(
     if (!existingRegion) {
       return notFoundResponse('Región');
     }
+
+    const previousData: Record<string, unknown> = {
+      code: existingRegion.code,
+      name: existingRegion.name,
+    };
 
     const data: { code?: string; name?: string } = {};
 
@@ -65,6 +71,17 @@ export async function PUT(
       data,
     });
 
+    await createAuditLog({
+      user: currentUser,
+      action: 'UPDATE',
+      module: 'Region',
+      entityId: String(updatedRegion.id),
+      entityType: 'Region',
+      ipAddress: await getClientIp(request),
+      previousData,
+      newData: data,
+    });
+
     return successResponse(updatedRegion, 'Región actualizada exitosamente');
   } catch (error) {
     if (error instanceof Error && error.message === 'No autorizado') {
@@ -83,7 +100,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireAdmin();
+    const currentUser = await requireAdmin();
     const { id } = await params;
 
     const existingRegion = await prisma.region.findUnique({
@@ -94,7 +111,6 @@ export async function DELETE(
       return notFoundResponse('Región');
     }
 
-    // Check if there are associated comunas
     const comunasCount = await prisma.comuna.count({
       where: { regionId: id },
     });
@@ -102,6 +118,16 @@ export async function DELETE(
     if (comunasCount > 0) {
       return errorResponse(`No se puede eliminar la región. Hay ${comunasCount} comunas asociadas a ella`);
     }
+
+    await createAuditLog({
+      user: currentUser,
+      action: 'DELETE',
+      module: 'Region',
+      entityId: String(existingRegion.id),
+      entityType: 'Region',
+      ipAddress: await getClientIp(request),
+      previousData: existingRegion as Record<string, unknown>,
+    });
 
     await prisma.region.delete({
       where: { id },

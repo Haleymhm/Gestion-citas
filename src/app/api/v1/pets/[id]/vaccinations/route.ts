@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -70,18 +71,30 @@ export async function POST(
       return notFoundResponse('Mascota');
     }
 
+    const createData = {
+      vaccineName,
+      vaccineType,
+      administrationDate: administrationDate ? new Date(administrationDate) : new Date(),
+      nextDoseDate: nextDoseDate ? new Date(nextDoseDate) : null,
+      lotNumber: lotNumber || null,
+      manufacturer: manufacturer || null,
+      veterinarian: veterinarian || null,
+      petId: parseInt(id),
+      createdById: user.userId,
+    };
+
     const vaccination = await prisma.vaccination.create({
-      data: {
-        vaccineName,
-        vaccineType,
-        administrationDate: administrationDate ? new Date(administrationDate) : new Date(),
-        nextDoseDate: nextDoseDate ? new Date(nextDoseDate) : null,
-        lotNumber: lotNumber || null,
-        manufacturer: manufacturer || null,
-        veterinarian: veterinarian || null,
-        petId: parseInt(id),
-        createdById: user.userId,
-      },
+      data: createData,
+    });
+
+    await createAuditLog({
+      user,
+      action: 'CREATE',
+      module: 'Vaccination',
+      entityId: String(vaccination.id),
+      entityType: 'Vaccination',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(vaccination, 'Vacuna registrada exitosamente', 201);
