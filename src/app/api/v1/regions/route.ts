@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/auth-helper';
+import { requireAdmin, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET() {
   try {
@@ -18,7 +19,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    const currentUser = await requireAdmin();
 
     const body = await request.json();
     const { code, name } = body;
@@ -35,11 +36,20 @@ export async function POST(request: NextRequest) {
       return errorResponse('Ya existe una región con este código');
     }
 
+    const createData = { code, name };
+
     const region = await prisma.region.create({
-      data: {
-        code,
-        name,
-      },
+      data: createData,
+    });
+
+    await createAuditLog({
+      user: currentUser,
+      action: 'CREATE',
+      module: 'Region',
+      entityId: String(region.id),
+      entityType: 'Region',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(region, 'Región creada exitosamente', 201);

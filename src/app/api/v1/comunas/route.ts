@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { requireAdmin } from '@/lib/auth-helper';
+import { requireAdmin, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    const currentUser = await requireAdmin();
 
     const body = await request.json();
     const { code, name, regionId } = body;
@@ -45,7 +46,6 @@ export async function POST(request: NextRequest) {
       return errorResponse('Código, nombre de comuna y región son requeridos');
     }
 
-    // Verify Region exists
     const regionExists = await prisma.region.findUnique({
       where: { id: regionId },
     });
@@ -62,15 +62,23 @@ export async function POST(request: NextRequest) {
       return errorResponse('Ya existe una comuna con este código');
     }
 
+    const createData = { code, name, regionId };
+
     const comuna = await prisma.comuna.create({
-      data: {
-        code,
-        name,
-        regionId,
-      },
+      data: createData,
       include: {
         region: true,
       },
+    });
+
+    await createAuditLog({
+      user: currentUser,
+      action: 'CREATE',
+      module: 'Comuna',
+      entityId: String(comuna.id),
+      entityType: 'Comuna',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(comuna, 'Comuna creada exitosamente', 201);

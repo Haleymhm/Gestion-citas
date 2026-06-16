@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 import type { Role } from '@prisma/client';
 
 export async function GET() {
@@ -36,7 +37,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin();
+    const adminUser = await requireAdmin();
+    const user = await adminUser;
 
     const body = await request.json();
     const { email, password, firstName, lastName, role } = body;
@@ -56,14 +58,16 @@ export async function POST(request: NextRequest) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        firstName,
-        lastName,
-        role: role as Role,
-      },
+    const createData = {
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
+      role: role as Role,
+    };
+
+    const newUser = await prisma.user.create({
+      data: createData,
       select: {
         id: true,
         email: true,
@@ -74,7 +78,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return successResponse(user, 'Usuario creado exitosamente', 201);
+    await createAuditLog({
+      user,
+      action: 'CREATE',
+      module: 'User',
+      entityId: String(newUser.id),
+      entityType: 'User',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
+    });
+
+    return successResponse(newUser, 'Usuario creado exitosamente', 201);
   } catch (error) {
     if (error instanceof Error && error.message === 'No autorizado') {
       return unauthorizedResponse();

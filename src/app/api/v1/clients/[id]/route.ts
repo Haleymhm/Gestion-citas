@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
-import { requireStaff } from '@/lib/auth-helper';
+import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -72,10 +73,30 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireStaff();
+    const currentUser = await requireStaff();
+
     const { id } = await params;
     const body = await request.json();
     const { firstName, lastName, email, password, rut, phone, address, regionId, comunaId } = body;
+
+    const existingClient = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!existingClient) {
+      return notFoundResponse('Cliente');
+    }
+
+    const previousData: Record<string, unknown> = {
+      firstName: existingClient.firstName,
+      lastName: existingClient.lastName,
+      email: existingClient.email,
+      rut: existingClient.rut,
+      phone: existingClient.phone,
+      address: existingClient.address,
+      regionId: existingClient.regionId,
+      comunaId: existingClient.comunaId,
+    };
 
     const data: {
       firstName?: string;
@@ -120,6 +141,17 @@ export async function PUT(
       },
     });
 
+    await createAuditLog({
+      user: currentUser,
+      action: 'UPDATE',
+      module: 'Client',
+      entityId: String(client.id),
+      entityType: 'User',
+      ipAddress: await getClientIp(request),
+      previousData,
+      newData: data,
+    });
+
     return successResponse(client, 'Cliente actualizado exitosamente');
   } catch (error) {
     if (error instanceof Error && error.message === 'No autorizado') {
@@ -137,8 +169,27 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await requireStaff();
+    const currentUser = await requireStaff();
+
     const { id } = await params;
+
+    const existing = await prisma.user.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!existing) {
+      return notFoundResponse('Cliente');
+    }
+
+    await createAuditLog({
+      user: currentUser,
+      action: 'DELETE',
+      module: 'Client',
+      entityId: String(existing.id),
+      entityType: 'User',
+      ipAddress: await getClientIp(request),
+      previousData: existing as Record<string, unknown>,
+    });
 
     await prisma.user.delete({
       where: { id: parseInt(id), role: 'CLIENT' },

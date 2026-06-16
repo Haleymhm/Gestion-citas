@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -93,6 +94,15 @@ export async function PUT(
       return forbiddenResponse();
     }
 
+    const previousData: Record<string, unknown> = {
+      title: existing.title,
+      date: existing.date,
+      diagnosis: existing.diagnosis,
+      treatment: existing.treatment,
+      publicNotes: existing.publicNotes,
+      privateNotes: existing.privateNotes,
+    };
+
     const updateData: Record<string, unknown> = {};
     if (title) updateData.title = title;
     if (date) updateData.date = new Date(date);
@@ -149,6 +159,17 @@ export async function PUT(
         });
       }
     }
+
+    await createAuditLog({
+      user,
+      action: 'UPDATE',
+      module: 'MedicalRecord',
+      entityId: String(medicalRecord.id),
+      entityType: 'MedicalRecord',
+      ipAddress: await getClientIp(request),
+      previousData,
+      newData: updateData,
+    });
 
     const updatedRecord = await prisma.medicalRecord.findUnique({
       where: { id: medicalRecord.id },
@@ -213,6 +234,16 @@ export async function DELETE(
     if (user.role === 'VET' && existing.vetId !== user.userId) {
       return forbiddenResponse();
     }
+
+    await createAuditLog({
+      user,
+      action: 'DELETE',
+      module: 'MedicalRecord',
+      entityId: String(existing.id),
+      entityType: 'MedicalRecord',
+      ipAddress: await getClientIp(request),
+      previousData: existing as Record<string, unknown>,
+    });
 
     await prisma.medicalRecord.delete({
       where: { id: parseInt(id) },

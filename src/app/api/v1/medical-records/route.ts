@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(request: NextRequest) {
   try {
@@ -157,6 +158,16 @@ export async function POST(request: NextRequest) {
         },
       });
     }
+
+    await createAuditLog({
+      user,
+      action: 'CREATE',
+      module: 'MedicalRecord',
+      entityId: String(medicalRecord.id),
+      entityType: 'MedicalRecord',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
+    });
 
     const updatedRecord = await prisma.medicalRecord.findUnique({
       where: { id: medicalRecord.id },

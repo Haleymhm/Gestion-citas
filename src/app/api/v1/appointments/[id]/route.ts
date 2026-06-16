@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 import type { AppointmentStatus } from '@prisma/client';
 
 export async function GET(
@@ -85,6 +86,16 @@ export async function PUT(
       return notFoundResponse('Cita');
     }
 
+    const previousData: Record<string, unknown> = {
+      date: existingAppointment.date,
+      reason: existingAppointment.reason,
+      status: existingAppointment.status,
+      notes: existingAppointment.notes,
+      vetId: existingAppointment.vetId,
+      petId: existingAppointment.petId,
+      categoryId: existingAppointment.categoryId,
+    };
+
     const updateData: {
       date?: Date;
       reason?: string;
@@ -154,6 +165,17 @@ export async function PUT(
       },
     });
 
+    await createAuditLog({
+      user,
+      action: 'UPDATE',
+      module: 'Appointment',
+      entityId: String(appointment.id),
+      entityType: 'Appointment',
+      ipAddress: await getClientIp(request),
+      previousData,
+      newData: updateData,
+    });
+
     return successResponse(appointment, 'Cita actualizada exitosamente');
   } catch (error) {
     if (error instanceof Error && error.message === 'No autorizado') {
@@ -172,7 +194,30 @@ export async function DELETE(
 ) {
   try {
     await requireStaff();
+    const user = await getCurrentUser();
+    if (!user) {
+      return unauthorizedResponse();
+    }
+
     const { id } = await params;
+
+    const existing = await prisma.appointment.findUnique({
+      where: { id: parseInt(id) },
+    });
+
+    if (!existing) {
+      return notFoundResponse('Cita');
+    }
+
+    await createAuditLog({
+      user,
+      action: 'DELETE',
+      module: 'Appointment',
+      entityId: String(existing.id),
+      entityType: 'Appointment',
+      ipAddress: await getClientIp(request),
+      previousData: existing as Record<string, unknown>,
+    });
 
     await prisma.appointment.delete({
       where: { id: parseInt(id) },

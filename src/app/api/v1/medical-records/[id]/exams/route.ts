@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -74,14 +75,26 @@ export async function POST(
       return forbiddenResponse();
     }
 
+    const createData = {
+      fileName,
+      fileUrl,
+      fileType,
+      description: description || null,
+      medicalRecordId: parseInt(id),
+    };
+
     const exam = await prisma.examAttachment.create({
-      data: {
-        fileName,
-        fileUrl,
-        fileType,
-        description: description || null,
-        medicalRecordId: parseInt(id),
-      },
+      data: createData,
+    });
+
+    await createAuditLog({
+      user,
+      action: 'CREATE',
+      module: 'ExamAttachment',
+      entityId: String(exam.id),
+      entityType: 'ExamAttachment',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(exam, 'Examen adjuntado exitosamente', 201);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -70,15 +71,27 @@ export async function POST(
       return notFoundResponse('Mascota');
     }
 
+    const createData = {
+      procedure,
+      date: date ? new Date(date) : null,
+      complications: complications || null,
+      notes: notes || null,
+      outcomes: outcomes || null,
+      petId: parseInt(id),
+    };
+
     const surgicalRecord = await prisma.surgicalHistory.create({
-      data: {
-        procedure,
-        date: date ? new Date(date) : null,
-        complications: complications || null,
-        notes: notes || null,
-        outcomes: outcomes || null,
-        petId: parseInt(id),
-      },
+      data: createData,
+    });
+
+    await createAuditLog({
+      user,
+      action: 'CREATE',
+      module: 'SurgicalHistory',
+      entityId: String(surgicalRecord.id),
+      entityType: 'SurgicalHistory',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(surgicalRecord, 'Antecedente quirúrgico registrado exitosamente', 201);

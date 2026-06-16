@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -70,16 +71,28 @@ export async function POST(
       return notFoundResponse('Mascota');
     }
 
+    const createData = {
+      productName,
+      type,
+      dosage: dosage || null,
+      date: date ? new Date(date) : new Date(),
+      nextDate: nextDate ? new Date(nextDate) : null,
+      petId: parseInt(id),
+      createdById: user.userId,
+    };
+
     const deworming = await prisma.deworming.create({
-      data: {
-        productName,
-        type,
-        dosage: dosage || null,
-        date: date ? new Date(date) : new Date(),
-        nextDate: nextDate ? new Date(nextDate) : null,
-        petId: parseInt(id),
-        createdById: user.userId,
-      },
+      data: createData,
+    });
+
+    await createAuditLog({
+      user,
+      action: 'CREATE',
+      module: 'Deworming',
+      entityId: String(deworming.id),
+      entityType: 'Deworming',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(deworming, 'Desparasitación registrada exitosamente', 201);

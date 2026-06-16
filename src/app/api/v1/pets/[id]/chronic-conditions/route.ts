@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
+import { createAuditLog, getClientIp } from '@/lib/audit';
 
 export async function GET(
   request: NextRequest,
@@ -70,16 +71,28 @@ export async function POST(
       return notFoundResponse('Mascota');
     }
 
+    const createData = {
+      name,
+      type,
+      severity: severity || null,
+      diagnosisDate: diagnosisDate ? new Date(diagnosisDate) : null,
+      notes: notes || null,
+      isActive: isActive !== undefined ? isActive : true,
+      petId: parseInt(id),
+    };
+
     const condition = await prisma.chronicCondition.create({
-      data: {
-        name,
-        type,
-        severity: severity || null,
-        diagnosisDate: diagnosisDate ? new Date(diagnosisDate) : null,
-        notes: notes || null,
-        isActive: isActive !== undefined ? isActive : true,
-        petId: parseInt(id),
-      },
+      data: createData,
+    });
+
+    await createAuditLog({
+      user,
+      action: 'CREATE',
+      module: 'ChronicCondition',
+      entityId: String(condition.id),
+      entityType: 'ChronicCondition',
+      ipAddress: await getClientIp(request),
+      newData: createData as Record<string, unknown>,
     });
 
     return successResponse(condition, 'Condición crónica registrada exitosamente', 201);

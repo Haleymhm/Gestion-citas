@@ -61,6 +61,7 @@ model User {
   medicalRecords     MedicalRecord[]
   vaccinations       Vaccination[]
   dewormingRecords   Deworming[]
+  auditLogs          AuditLog[]
 }
 
 model Category {
@@ -243,4 +244,40 @@ model Comuna {
   updatedAt DateTime @updatedAt
 
   @@index([name])
+}
+
+model AuditLog {
+  id           String    @id @default(uuid())
+  userId       Int
+  userFullName String
+  userEmail    String
+  action       String
+  module       String
+  entityId     String
+  entityType   String
+  timestamp    DateTime  @default(now())
+  ipAddress    String?
+  previousHash String
+  signature    String
+
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  details AuditLogDetail[]
+
+  @@index([userId])
+  @@index([entityId])
+  @@index([action])
+  @@index([module])
+  @@index([timestamp])
+}
+
+model AuditLogDetail {
+  id        String  @id @default(uuid())
+  fieldName String
+  oldValue  String?
+  newValue  String?
+
+  auditLogId String
+  auditLog   AuditLog @relation(fields: [auditLogId], references: [id], onDelete: Cascade)
+
+  @@index([auditLogId])
 }
