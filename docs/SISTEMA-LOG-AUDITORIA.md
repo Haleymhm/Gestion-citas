@@ -380,38 +380,38 @@ LOG_FILE_PATH="./logs"
 
 | # | Tarea | Prioridad | Estado |
 |---|-------|-----------|--------|
-| 1 | Crear modelos `AuditLog` y `AuditLogDetail` en `prisma/schema.prisma` | Alta | ⏳ Pendiente |
-| 2 | Ejecutar `prisma migrate dev` | Alta | ⏳ Pendiente |
-| 3 | Desarrollar `src/services/audit-signature.ts` (Hash + HMAC) | Alta | ⏳ Pendiente |
+| 1 | Crear modelos `AuditLog` y `AuditLogDetail` en `prisma/schema.prisma` | Alta | ✅ Completada |
+| 2 | Ejecutar `prisma migrate dev` | Alta | ✅ Completada |
+| 3 | Desarrollar `src/services/audit-signature.ts` (Hash + HMAC) | Alta | ✅ Completada |
 
 ### Fase 2: Captura y Almacenamiento
 
 | # | Tarea | Prioridad | Estado |
 |---|-------|-----------|--------|
-| 4 | Desarrollar `src/lib/audit-middleware.ts` (captura de auditoría) | Alta | ⏳ Pendiente |
-| 5 | Desarrollar `src/lib/logger.ts` (pino/winston) | Media | ⏳ Pendiente |
-| 6 | Inyectar middleware en `src/lib/prisma.ts` | Alta | ⏳ Pendiente |
-| 7 | Probar captura de logs en operaciones CRUD | Alta | ⏳ Pendiente |
+| 4 | Desarrollar `src/lib/audit-middleware.ts` (captura de auditoría) | Alta | ✅ Completada (vía API Endpoint Helpers) |
+| 5 | Desarrollar `src/lib/logger.ts` (pino/winston) | Media | ✅ Completada |
+| 6 | Inyectar middleware en `src/lib/prisma.ts` | Alta | ✅ Completada (vía helpers explícitos en API Routes) |
+| 7 | Probar captura de logs en operaciones CRUD | Alta | ✅ Completada |
 
 ### Fase 3: Interfaz y Reportes (UI)
 
 | # | Tarea | Prioridad | Estado |
 |---|-------|-----------|--------|
-| 8 | Crear página `src/app/(admin)/audit-logs/page.tsx` | Alta | ⏳ Pendiente |
-| 9 | Implementar componente `AuditLogTable` con filtros | Alta | ⏳ Pendiente |
-| 10 | Implementar componente `IntegrityBadge` | Media | ⏳ Pendiente |
-| 11 | Crear endpoint `GET /api/v1/audit-logs` con paginación | Alta | ⏳ Pendiente |
-| 12 | Crear endpoint `GET /api/v1/audit-logs/export/csv` | Media | ⏳ Pendiente |
-| 13 | Crear endpoint `GET /api/v1/audit-logs/export/pdf` | Media | ⏳ Pendiente |
-| 14 | Crear endpoint `GET /api/v1/audit-logs/[id]/verify` | Media | ⏳ Pendiente |
-| 15 | Agregar protección de rol ADMIN a endpoints de auditoría | Alta | ⏳ Pendiente |
+| 8 | Crear página `src/app/(admin)/audit-logs/page.tsx` | Alta | ✅ Completada |
+| 9 | Implementar componente `AuditLogTable` con filtros | Alta | ✅ Completada |
+| 10 | Implementar componente `IntegrityBadge` | Media | ✅ Completada |
+| 11 | Crear endpoint `GET /api/v1/audit-logs` con paginación | Alta | ✅ Completada |
+| 12 | Crear endpoint `GET /api/v1/audit-logs/export/csv` | Media | ✅ Completada |
+| 13 | Crear endpoint `GET /api/v1/audit-logs/export/pdf` | Media | ✅ Completada |
+| 14 | Crear endpoint `GET /api/v1/audit-logs/[id]/verify` | Media | ✅ Completada |
+| 15 | Agregar protección de rol ADMIN a endpoints de auditoría | Alta | ✅ Completada |
 
 ### Fase 4: Testing y Validación
 
 | # | Tarea | Prioridad | Estado |
 |---|-------|-----------|--------|
-| 16 | Implementar tests de integridad y firma digital | Media | ⏳ Pendiente |
-| 17 | Testing de extremo a extremo de la UI de auditoría | Media | ⏳ Pendiente |
+| 16 | Implementar tests de integridad y firma digital | Media | ✅ Completada |
+| 17 | Testing de extremo a extremo de la UI de auditoría | Media | ✅ Completada |
 
 ---
 

@@ -27,12 +27,10 @@ export async function GET(request: NextRequest) {
     if (startDate || endDate) {
       where.timestamp = {};
       if (startDate) {
-        (where.timestamp as Record<string, unknown>).gte = new Date(startDate);
+        (where.timestamp as Record<string, unknown>).gte = new Date(startDate.includes('T') ? startDate : `${startDate}T00:00:00.000Z`);
       }
       if (endDate) {
-        const endDateTime = new Date(endDate);
-        endDateTime.setHours(23, 59, 59, 999);
-        (where.timestamp as Record<string, unknown>).lte = endDateTime;
+        (where.timestamp as Record<string, unknown>).lte = new Date(endDate.includes('T') ? endDate : `${endDate}T23:59:59.999Z`);
       }
     }
 

@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, unknown> = {
       timestamp: {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
+        gte: new Date(startDate.includes('T') ? startDate : `${startDate}T00:00:00.000Z`),
+        lte: new Date(endDate.includes('T') ? endDate : `${endDate}T23:59:59.999Z`),
       },
     };
 
