@@ -5,9 +5,9 @@ import { Metadata } from "next";
 import React from "react";
 
 export const metadata: Metadata = {
-  title: "Next.js Profile | TailAdmin - Next.js Dashboard Template",
+  title: "VeteriApp Gestión Integral Veterinaria",
   description:
-    "This is Next.js Profile page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+    "Administra tus citas, clientes y mascotas de manera eficiente con nuestra plataforma fácil de usa",
 };
 
 export default function Profile() {
