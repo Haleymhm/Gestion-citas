@@ -202,7 +202,9 @@ src/
 │   └── ...
 ├── lib/
 │   ├── prisma.ts            # Cliente Prisma
-│   ├── auth-helper.ts       # Helpers de autenticación
+│   ├── jwt.ts                # Configuración JWT compartida (secret, payload, verify)
+│   ├── auth.ts               # Helpers de autenticación (re-exporta desde jwt.ts)
+│   ├── auth-helper.ts        # Helpers de autenticación server-side
 │   ├── api-response.ts      # Respuestas API estandarizadas
 │   ├── validations.ts       # Schemas Zod para validación de requests
 │   ├── audit.ts             # Sistema de auditoría
@@ -212,7 +214,7 @@ src/
 │   └── logger.ts            # Sistema de logs (pino + winston)
 ├── types/
 │   └── index.ts             # TypeScript DTOs
-└── middleware.ts            # Middleware de autenticación
+└── proxy.ts             # Proxy de autenticación (Next.js 16)
 ```
 
 ## API Routes
