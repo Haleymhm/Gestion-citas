@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, UpdateUserSchema } from '@/lib/validations';
 import type { Role } from '@prisma/client';
 
 export async function GET(
@@ -51,7 +52,13 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { firstName, lastName, role, password } = body;
+    const validation = validateBody(UpdateUserSchema, body);
+
+    if (!validation.success) {
+      return errorResponse(validation.error);
+    }
+
+    const { firstName, lastName, role, password } = validation.data;
 
     const existingUser = await prisma.user.findUnique({
       where: { id: parseInt(id) },
@@ -76,14 +83,8 @@ export async function PUT(
 
     if (firstName) data.firstName = firstName;
     if (lastName) data.lastName = lastName;
-
-    if (role && ['ADMIN', 'VET', 'RECEPTIONIST', 'CLIENT'].includes(role)) {
-      data.role = role;
-    }
-
-    if (password && password.length >= 8) {
-      data.password = await bcrypt.hash(password, 10);
-    }
+    if (role) data.role = role;
+    if (password) data.password = await bcrypt.hash(password, 10);
 
     const user = await prisma.user.update({
       where: { id: parseInt(id) },

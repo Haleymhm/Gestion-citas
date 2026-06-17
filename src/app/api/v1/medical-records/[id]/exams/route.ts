@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreateExamAttachmentSchema } from '@/lib/validations';
 
 export async function GET(
   request: NextRequest,
@@ -57,11 +58,13 @@ export async function POST(
 
     const { id } = await params;
     const body = await request.json();
-    const { fileName, fileUrl, fileType, description } = body;
+    const validation = validateBody(CreateExamAttachmentSchema, body);
 
-    if (!fileName || !fileUrl || !fileType) {
-      return errorResponse('Nombre, URL y tipo de archivo son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
+
+    const { fileName, fileUrl, fileType, description } = validation.data;
 
     const medicalRecord = await prisma.medicalRecord.findUnique({
       where: { id: parseInt(id) },

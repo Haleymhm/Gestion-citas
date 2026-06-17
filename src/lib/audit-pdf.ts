@@ -46,7 +46,7 @@ export const generateAuditPDF = (data: AuditReportData): jsPDF => {
 
   doc.setFontSize(12);
   doc.setTextColor(100, 100, 100);
-  doc.text('VetAppoint - Sistema de Gestión de Clínicas Veterinarias', 105, 28, { align: 'center' });
+  doc.text('VeteriApp - Sistema de Gestión de Clínicas Veterinarias', 105, 28, { align: 'center' });
 
   doc.setDrawColor(200, 200, 200);
   doc.line(20, 32, 190, 32);
@@ -172,7 +172,7 @@ export const generateAuditPDF = (data: AuditReportData): jsPDF => {
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
   doc.text(
-    `Documento generado automáticamente por VetAppoint - ${new Date().toLocaleString('es-CL')}`,
+    `Documento generado automáticamente por VeteriApp - ${new Date().toLocaleString('es-CL')}`,
     105,
     290,
     { align: 'center' }

@@ -4,7 +4,7 @@
 
 | Atributo | Detalle |
 | :--- | :--- |
-| **Nombre del Sistema** | VetAppoint |
+| **Nombre del Sistema** | VeteriApp |
 | **Descripción** | Software para la gestión integral de citas, clientes, mascotas e historial médico de una clínica veterinaria. |
 | **Repositorio** | `Gestion-citas` |
 | **Template Base** | `free-nextjs-admin-dashboard` |

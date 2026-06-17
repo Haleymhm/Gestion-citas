@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreateVaccinationSchema } from '@/lib/validations';
 
 export async function GET(
   request: NextRequest,
@@ -57,11 +58,13 @@ export async function POST(
 
     const { id } = await params;
     const body = await request.json();
-    const { vaccineName, vaccineType, administrationDate, nextDoseDate, lotNumber, manufacturer, veterinarian } = body;
+    const validation = validateBody(CreateVaccinationSchema, body);
 
-    if (!vaccineName || !vaccineType) {
-      return errorResponse('Nombre y tipo de vacuna son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
+
+    const { vaccineName, vaccineType, administrationDate, nextDoseDate, lotNumber, manufacturer, veterinarian } = validation.data;
 
     const pet = await prisma.pet.findUnique({
       where: { id: parseInt(id) },

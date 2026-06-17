@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreateDewormingSchema } from '@/lib/validations';
 
 export async function GET(
   request: NextRequest,
@@ -57,11 +58,13 @@ export async function POST(
 
     const { id } = await params;
     const body = await request.json();
-    const { productName, type, dosage, date, nextDate } = body;
+    const validation = validateBody(CreateDewormingSchema, body);
 
-    if (!productName || !type) {
-      return errorResponse('Nombre del producto y tipo son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
+
+    const { productName, type, dosage, date, nextDate } = validation.data;
 
     const pet = await prisma.pet.findUnique({
       where: { id: parseInt(id) },

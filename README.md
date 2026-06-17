@@ -1,8 +1,8 @@
-# VetAppoint - Sistema de Gestión de Citas para Clínicas Veterinarias
+# VeteriApp - Sistema de Gestión de Citas para Clínicas Veterinarias
 
-VetAppoint es un software integral para la gestión de clínicas veterinarias, que permite administrar clientes, mascotas, citas y el historial médico de los pacientes.
+VeteriApp es un software integral para la gestión de clínicas veterinarias, que permite administrar clientes, mascotas, citas y el historial médico de los pacientes.
 
-![VetAppoint](./banner.png)
+![VeteriApp](./banner.png)
 
 ## Funcionalidades
 
@@ -27,6 +27,11 @@ VetAppoint es un software integral para la gestión de clínicas veterinarias, q
   - Panel de notificaciones en el calendario con conteo de citas pendientes
   - Modal interactivo para confirmar o cancelar citas pendientes de forma rápida
   - Integración directa con el flujo de reversa de citas del cliente
+- **Validación de Requests con Zod**:
+  - Todos los endpoints de API validados con schemas Zod
+  - Tipos de datos verificados (emails, UUIDs, fechas ISO)
+  - Validación de rangos y valores permitidos (enums, números positivos)
+  - Errores estructurados con ruta del campo y mensaje descriptivo
 
 ### Funcionalidades Pendientes (Fases 6-7)
 
@@ -44,6 +49,7 @@ VetAppoint es un software integral para la gestión de clínicas veterinarias, q
 | ORM | Prisma 6.x |
 | Base de Datos | PostgreSQL (Supabase Neon) |
 | Autenticación | Custom JWT (jose) + bcryptjs |
+| Validación | Zod 4.x (validación de requests en API routes) |
 | Notificaciones | Resend API (pendiente) |
 | UI Components | FullCalendar, ApexCharts |
 | Generación PDF | jsPDF + jspdf-autotable |
@@ -196,15 +202,24 @@ src/
 │   └── ...
 ├── lib/
 │   ├── prisma.ts            # Cliente Prisma
-│   ├── auth-helper.ts       # Helpers de autenticación
+│   ├── jwt.ts                # Configuración JWT compartida (secret, payload, verify)
+│   ├── auth.ts               # Helpers de autenticación (re-exporta desde jwt.ts)
+│   ├── auth-helper.ts        # Helpers de autenticación server-side
 │   ├── api-response.ts      # Respuestas API estandarizadas
-│   └── medical-history-pdf.ts # Generación de PDF del historial médico
+│   ├── validations.ts       # Schemas Zod para validación de requests
+│   ├── audit.ts             # Sistema de auditoría
+│   ├── audit-signature.ts   # Integridad criptográfica de logs
+│   ├── audit-pdf.ts         # Exportación PDF de auditoría
+│   ├── medical-history-pdf.ts # Generación de PDF del historial médico
+│   └── logger.ts            # Sistema de logs (pino + winston)
 ├── types/
 │   └── index.ts             # TypeScript DTOs
-└── middleware.ts            # Middleware de autenticación
+└── proxy.ts             # Proxy de autenticación (Next.js 16)
 ```
 
 ## API Routes
+
+> **Nota**: Todas las rutas POST/PUT validan el body de la request con schemas Zod definidos en `src/lib/validations.ts`. Los errores retornan `{ success: false, error: "campo: mensaje" }` con código 400.
 
 ### Autenticación
 - `POST /api/v1/auth/register` - Registro de usuarios

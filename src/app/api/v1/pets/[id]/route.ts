@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, UpdatePetSchema } from '@/lib/validations';
 
 export async function GET(
   request: NextRequest,
@@ -65,7 +66,13 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, species, breed, birthDate, weight, sex, reproductiveStatus, specialCharacteristics, microchipNumber } = body;
+    const validation = validateBody(UpdatePetSchema, body);
+
+    if (!validation.success) {
+      return errorResponse(validation.error);
+    }
+
+    const { name, species, breed, birthDate, weight, sex, reproductiveStatus, specialCharacteristics, microchipNumber } = validation.data;
 
     const existingPet = await prisma.pet.findUnique({
       where: { id: parseInt(id) },
@@ -105,13 +112,13 @@ export async function PUT(
 
     if (name) data.name = name;
     if (species) data.species = species;
-    if (breed !== undefined) data.breed = breed || null;
+    if (breed !== undefined) data.breed = breed;
     if (birthDate !== undefined) data.birthDate = birthDate ? new Date(birthDate) : null;
-    if (weight !== undefined) data.weight = weight ? parseFloat(weight) : null;
-    if (sex !== undefined) data.sex = sex || null;
-    if (reproductiveStatus !== undefined) data.reproductiveStatus = reproductiveStatus || null;
-    if (specialCharacteristics !== undefined) data.specialCharacteristics = specialCharacteristics || null;
-    if (microchipNumber !== undefined) data.microchipNumber = microchipNumber || null;
+    if (weight !== undefined) data.weight = weight;
+    if (sex !== undefined) data.sex = sex;
+    if (reproductiveStatus !== undefined) data.reproductiveStatus = reproductiveStatus;
+    if (specialCharacteristics !== undefined) data.specialCharacteristics = specialCharacteristics;
+    if (microchipNumber !== undefined) data.microchipNumber = microchipNumber;
 
     const pet = await prisma.pet.update({
       where: { id: parseInt(id) },

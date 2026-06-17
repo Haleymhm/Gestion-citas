@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreatePetSchema } from '@/lib/validations';
 
 export async function GET(request: NextRequest) {
   try {
@@ -75,11 +76,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, species, breed, birthDate, weight, sex, reproductiveStatus, specialCharacteristics, microchipNumber, ownerId } = body;
+    const validation = validateBody(CreatePetSchema, body);
 
-    if (!name || !species) {
-      return errorResponse('Nombre y especie son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
+
+    const { name, species, breed, birthDate, weight, sex, reproductiveStatus, specialCharacteristics, microchipNumber, ownerId } = validation.data;
 
     let petOwnerId: number;
 
@@ -87,7 +90,7 @@ export async function POST(request: NextRequest) {
       petOwnerId = user.userId;
     } else if (ownerId) {
       await requireStaff();
-      petOwnerId = parseInt(ownerId);
+      petOwnerId = ownerId;
     } else {
       return errorResponse('ownerId es requerido');
     }
@@ -97,7 +100,7 @@ export async function POST(request: NextRequest) {
       species,
       breed: breed || null,
       birthDate: birthDate ? new Date(birthDate) : null,
-      weight: weight ? parseFloat(weight) : null,
+      weight: weight || null,
       sex: sex || null,
       reproductiveStatus: reproductiveStatus || null,
       specialCharacteristics: specialCharacteristics || null,

@@ -1,18 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtVerify } from 'jose';
-import type { Role } from '@prisma/client';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'fallback-secret-for-development'
-);
-
-interface JWTPayload {
-  userId: number;
-  email: string;
-  role: Role;
-  firstName: string;
-  lastName: string;
-}
+import { jwtVerify, JWT_SECRET, JWTPayload } from '@/lib/jwt';
 
 const PUBLIC_PATHS = ['/signin', '/signup', '/api/v1/auth/login', '/api/v1/auth/register'];
 const AUTH_API_PATHS = ['/api/v1/auth/session', '/api/v1/auth/logout'];
@@ -20,7 +7,7 @@ const ADMIN_ONLY_PATHS = ['/usuarios'];
 const STAFF_PATHS = ['/calendar', '/categorias', '/clientes', '/mascotas', '/historial-medico', '/regiones', '/comunas'];
 const VET_PATHS = ['/historial-medico'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {

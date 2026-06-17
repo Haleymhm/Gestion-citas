@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreateClientSchema } from '@/lib/validations';
 
 export async function GET(request: NextRequest) {
   try {
@@ -92,15 +93,13 @@ export async function POST(request: NextRequest) {
     const currentUser = await requireStaff();
 
     const body = await request.json();
-    const { email, password, firstName, lastName, rut, phone, address, regionId, comunaId } = body;
+    const validation = validateBody(CreateClientSchema, body);
 
-    if (!email || !password || !firstName || !lastName || !rut) {
-      return errorResponse('Los campos nombre, apellido, email, password y RUT son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
 
-    if (password.length < 8) {
-      return errorResponse('La contraseña debe tener al menos 8 caracteres');
-    }
+    const { email, password, firstName, lastName, rut, phone, address, regionId, comunaId } = validation.data;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
