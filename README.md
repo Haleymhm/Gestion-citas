@@ -1,8 +1,8 @@
-# VetAppoint - Sistema de Gestión de Citas para Clínicas Veterinarias
+# VeteriApp - Sistema de Gestión de Citas para Clínicas Veterinarias
 
-VetAppoint es un software integral para la gestión de clínicas veterinarias, que permite administrar clientes, mascotas, citas y el historial médico de los pacientes.
+VeteriApp es un software integral para la gestión de clínicas veterinarias, que permite administrar clientes, mascotas, citas y el historial médico de los pacientes.
 
-![VetAppoint](./banner.png)
+![VeteriApp](./banner.png)
 
 ## Funcionalidades
 

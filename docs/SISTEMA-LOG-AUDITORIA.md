@@ -1,4 +1,4 @@
-# Sistema de Logging y Auditoría Inmutable para VetAppoint
+# Sistema de Logging y Auditoría Inmutable para VeteriApp
 
 ## Historial de Versiones
 
@@ -11,7 +11,7 @@
 
 ## 1. Propósito y Alcance
 
-Este documento define la arquitectura, implementación y operación del Sistema de Logging y Auditoría para VetAppoint, diseñado para garantizar la trazabilidad completa, seguridad e inmutabilidad de los registros de datos sensibles de pacientes veterinarios.
+Este documento define la arquitectura, implementación y operación del Sistema de Logging y Auditoría para VeteriApp, diseñado para garantizar la trazabilidad completa, seguridad e inmutabilidad de los registros de datos sensibles de pacientes veterinarios.
 
 ### 1.1 Objetivos del Sistema
 
@@ -81,7 +81,7 @@ Se implementarán endpoints de API para la generación de reportes en los siguie
 
 ```mermaid
 graph TD
-    A[Aplicación VetAppointment] --> B(Prisma ORM)
+    A[Aplicación VeteriApp] --> B(Prisma ORM)
     B --> C{Middleware Prisma Audit}
     C --> D[Base de Datos PostgreSQL]
     C --> E[Archivos JSON Firmados]
@@ -306,7 +306,7 @@ Al hacer clic en una fila, se puede expandir para mostrar los cambios específic
 
 El PDF generado para entidades regulatorias deberá incluir:
 
-- **Encabezado:** Logo de VetAppoint + título "Registro de Auditoría"
+- **Encabezado:** Logo de VeteriApp + título "Registro de Auditoría"
 - **Rango de Fechas:** Período cubierto por el reporte
 - **Tabla Principal:** Lista de operaciones con todas las columnas
 - **Totales:** Cantidad de operaciones por tipo (creación, edición, eliminación)
