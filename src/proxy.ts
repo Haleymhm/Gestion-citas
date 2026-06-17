@@ -7,7 +7,7 @@ const ADMIN_ONLY_PATHS = ['/usuarios'];
 const STAFF_PATHS = ['/calendar', '/categorias', '/clientes', '/mascotas', '/historial-medico', '/regiones', '/comunas'];
 const VET_PATHS = ['/historial-medico'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
