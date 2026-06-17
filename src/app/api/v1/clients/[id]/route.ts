@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, UpdateClientSchema } from '@/lib/validations';
 
 export async function GET(
   request: NextRequest,
@@ -77,7 +78,13 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { firstName, lastName, email, password, rut, phone, address, regionId, comunaId } = body;
+    const validation = validateBody(UpdateClientSchema, body);
+
+    if (!validation.success) {
+      return errorResponse(validation.error);
+    }
+
+    const { firstName, lastName, email, password, rut, phone, address, regionId, comunaId } = validation.data;
 
     const existingClient = await prisma.user.findUnique({
       where: { id: parseInt(id) },
@@ -114,14 +121,12 @@ export async function PUT(
     if (lastName) data.lastName = lastName;
     if (email) data.email = email;
     if (rut !== undefined) data.rut = rut;
-    if (phone !== undefined) data.phone = phone || null;
-    if (address !== undefined) data.address = address || null;
-    if (regionId !== undefined) data.regionId = regionId || null;
-    if (comunaId !== undefined) data.comunaId = comunaId || null;
+    if (phone !== undefined) data.phone = phone;
+    if (address !== undefined) data.address = address;
+    if (regionId !== undefined) data.regionId = regionId;
+    if (comunaId !== undefined) data.comunaId = comunaId;
 
-    if (password && password.length >= 8) {
-      data.password = await bcrypt.hash(password, 10);
-    }
+    if (password) data.password = await bcrypt.hash(password, 10);
 
     const client = await prisma.user.update({
       where: { id: parseInt(id), role: 'CLIENT' },

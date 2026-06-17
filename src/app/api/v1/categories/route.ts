@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreateCategorySchema } from '@/lib/validations';
 
 export async function GET(request: NextRequest) {
   try {
@@ -35,11 +36,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, color } = body;
+    const validation = validateBody(CreateCategorySchema, body);
 
-    if (!name || !color) {
-      return errorResponse('Nombre y color son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
+
+    const { name, color } = validation.data;
 
     const createData = { name, color };
 

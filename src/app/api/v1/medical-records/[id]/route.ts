@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, UpdateMedicalRecordSchema } from '@/lib/validations';
 
 export async function GET(
   request: NextRequest,
@@ -79,7 +80,13 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { date, title, diagnosis, treatment, publicNotes, privateNotes, vitals } = body;
+    const validation = validateBody(UpdateMedicalRecordSchema, body);
+
+    if (!validation.success) {
+      return errorResponse(validation.error);
+    }
+
+    const { date, title, diagnosis, treatment, publicNotes, privateNotes, vitals } = validation.data;
 
     const existing = await prisma.medicalRecord.findUnique({
       where: { id: parseInt(id) },
@@ -106,10 +113,10 @@ export async function PUT(
     const updateData: Record<string, unknown> = {};
     if (title) updateData.title = title;
     if (date) updateData.date = new Date(date);
-    if (diagnosis !== undefined) updateData.diagnosis = diagnosis || null;
-    if (treatment !== undefined) updateData.treatment = treatment || null;
+    if (diagnosis !== undefined) updateData.diagnosis = diagnosis;
+    if (treatment !== undefined) updateData.treatment = treatment;
     if (publicNotes) updateData.publicNotes = publicNotes;
-    if (privateNotes !== undefined) updateData.privateNotes = privateNotes || null;
+    if (privateNotes !== undefined) updateData.privateNotes = privateNotes;
 
     const medicalRecord = await prisma.medicalRecord.update({
       where: { id: parseInt(id) },
@@ -137,13 +144,13 @@ export async function PUT(
 
     if (vitals) {
       const vitalsData: Record<string, unknown> = {};
-      if (vitals.weight !== undefined) vitalsData.weight = vitals.weight ? parseFloat(vitals.weight) : null;
-      if (vitals.temperature !== undefined) vitalsData.temperature = vitals.temperature ? parseFloat(vitals.temperature) : null;
-      if (vitals.heartRate !== undefined) vitalsData.heartRate = vitals.heartRate ? parseInt(vitals.heartRate) : null;
-      if (vitals.respiratoryRate !== undefined) vitalsData.respiratoryRate = vitals.respiratoryRate ? parseInt(vitals.respiratoryRate) : null;
-      if (vitals.capillaryRefillTime !== undefined) vitalsData.capillaryRefillTime = vitals.capillaryRefillTime || null;
-      if (vitals.dehydrationPercentage !== undefined) vitalsData.dehydrationPercentage = vitals.dehydrationPercentage ? parseFloat(vitals.dehydrationPercentage) : null;
-      if (vitals.mucousMembranes !== undefined) vitalsData.mucousMembranes = vitals.mucousMembranes || null;
+      if (vitals.weight !== undefined) vitalsData.weight = vitals.weight;
+      if (vitals.temperature !== undefined) vitalsData.temperature = vitals.temperature;
+      if (vitals.heartRate !== undefined) vitalsData.heartRate = vitals.heartRate;
+      if (vitals.respiratoryRate !== undefined) vitalsData.respiratoryRate = vitals.respiratoryRate;
+      if (vitals.capillaryRefillTime !== undefined) vitalsData.capillaryRefillTime = vitals.capillaryRefillTime;
+      if (vitals.dehydrationPercentage !== undefined) vitalsData.dehydrationPercentage = vitals.dehydrationPercentage;
+      if (vitals.mucousMembranes !== undefined) vitalsData.mucousMembranes = vitals.mucousMembranes;
 
       if (existing.vitals) {
         await prisma.vitalSigns.update({

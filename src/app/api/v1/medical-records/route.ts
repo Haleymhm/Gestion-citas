@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser, requireStaff } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreateMedicalRecordSchema } from '@/lib/validations';
 
 export async function GET(request: NextRequest) {
   try {
@@ -82,14 +83,16 @@ export async function POST(request: NextRequest) {
     await requireStaff();
 
     const body = await request.json();
-    const { date, title, diagnosis, treatment, publicNotes, privateNotes, petId, vitals } = body;
+    const validation = validateBody(CreateMedicalRecordSchema, body);
 
-    if (!title || !publicNotes || !petId) {
-      return errorResponse('Título, notas públicas y mascota son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
 
+    const { date, title, diagnosis, treatment, publicNotes, privateNotes, petId, vitals } = validation.data;
+
     const pet = await prisma.pet.findUnique({
-      where: { id: parseInt(petId) },
+      where: { id: petId },
     });
 
     if (!pet) {
@@ -113,7 +116,7 @@ export async function POST(request: NextRequest) {
       title,
       publicNotes,
       privateNotes: privateNotes || null,
-      petId: parseInt(petId),
+      petId: petId,
       vetId: user.userId,
     };
 
@@ -147,12 +150,12 @@ export async function POST(request: NextRequest) {
     if (vitals) {
       await prisma.vitalSigns.create({
         data: {
-          weight: vitals.weight ? parseFloat(vitals.weight) : null,
-          temperature: vitals.temperature ? parseFloat(vitals.temperature) : null,
-          heartRate: vitals.heartRate ? parseInt(vitals.heartRate) : null,
-          respiratoryRate: vitals.respiratoryRate ? parseInt(vitals.respiratoryRate) : null,
+          weight: vitals.weight || null,
+          temperature: vitals.temperature || null,
+          heartRate: vitals.heartRate || null,
+          respiratoryRate: vitals.respiratoryRate || null,
           capillaryRefillTime: vitals.capillaryRefillTime || null,
-          dehydrationPercentage: vitals.dehydrationPercentage ? parseFloat(vitals.dehydrationPercentage) : null,
+          dehydrationPercentage: vitals.dehydrationPercentage || null,
           mucousMembranes: vitals.mucousMembranes || null,
           medicalRecordId: medicalRecord.id,
         },

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreateRegionSchema } from '@/lib/validations';
 
 export async function GET() {
   try {
@@ -22,11 +23,13 @@ export async function POST(request: NextRequest) {
     const currentUser = await requireAdmin();
 
     const body = await request.json();
-    const { code, name } = body;
+    const validation = validateBody(CreateRegionSchema, body);
 
-    if (!code || !name) {
-      return errorResponse('Código y nombre de región son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
+
+    const { code, name } = validation.data;
 
     const existingCode = await prisma.region.findUnique({
       where: { code },

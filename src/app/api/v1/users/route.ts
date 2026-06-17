@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreateUserSchema } from '@/lib/validations';
 import type { Role } from '@prisma/client';
 
 export async function GET() {
@@ -41,15 +42,13 @@ export async function POST(request: NextRequest) {
     const user = await adminUser;
 
     const body = await request.json();
-    const { email, password, firstName, lastName, role } = body;
+    const validation = validateBody(CreateUserSchema, body);
 
-    if (!email || !password || !firstName || !lastName || !role) {
-      return errorResponse('Todos los campos son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
 
-    if (!['ADMIN', 'VET', 'RECEPTIONIST'].includes(role)) {
-      return errorResponse('Rol no válido para esta acción');
-    }
+    const { email, password, firstName, lastName, role } = validation.data;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {

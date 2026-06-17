@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreateComunaSchema } from '@/lib/validations';
 
 export async function GET(request: NextRequest) {
   try {
@@ -40,11 +41,13 @@ export async function POST(request: NextRequest) {
     const currentUser = await requireAdmin();
 
     const body = await request.json();
-    const { code, name, regionId } = body;
+    const validation = validateBody(CreateComunaSchema, body);
 
-    if (!code || !name || !regionId) {
-      return errorResponse('Código, nombre de comuna y región son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
+
+    const { code, name, regionId } = validation.data;
 
     const regionExists = await prisma.region.findUnique({
       where: { id: regionId },

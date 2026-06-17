@@ -3,16 +3,19 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { createToken, setAuthCookie } from '@/lib/auth';
 import { successResponse, errorResponse } from '@/lib/api-response';
+import { validateBody, LoginSchema } from '@/lib/validations';
 import type { Role } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password } = body;
+    const validation = validateBody(LoginSchema, body);
 
-    if (!email || !password) {
-      return errorResponse('Email y contraseña son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
+
+    const { email, password } = validation.data;
 
     const user = await prisma.user.findUnique({
       where: { email },

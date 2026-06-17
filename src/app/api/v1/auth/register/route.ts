@@ -3,20 +3,19 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import { createToken, setAuthCookie } from '@/lib/auth';
 import { successResponse, errorResponse } from '@/lib/api-response';
+import { validateBody, RegisterSchema } from '@/lib/validations';
 import type { Role } from '@prisma/client';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, password, firstName, lastName, role = 'CLIENT' } = body;
+    const validation = validateBody(RegisterSchema, body);
 
-    if (!email || !password || !firstName || !lastName) {
-      return errorResponse('Todos los campos son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
 
-    if (password.length < 8) {
-      return errorResponse('La contraseña debe tener al menos 8 caracteres');
-    }
+    const { email, password, firstName, lastName, role } = validation.data;
 
     const existingUser = await prisma.user.findUnique({
       where: { email },

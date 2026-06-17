@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, UpdateAppointmentSchema } from '@/lib/validations';
 import type { AppointmentStatus } from '@prisma/client';
 
 export async function GET(
@@ -76,7 +77,13 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { date, reason, status, notes, vetId, petId, categoryId } = body;
+    const validation = validateBody(UpdateAppointmentSchema, body);
+
+    if (!validation.success) {
+      return errorResponse(validation.error);
+    }
+
+    const { date, reason, status, notes, vetId, petId, categoryId } = validation.data;
 
     const existingAppointment = await prisma.appointment.findUnique({
       where: { id: parseInt(id) },
@@ -115,12 +122,10 @@ export async function PUT(
     }
 
     if (reason) updateData.reason = reason;
-    if (status && ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(status)) {
-      updateData.status = status;
-    }
-    if (notes !== undefined) updateData.notes = notes || null;
-    if (vetId !== undefined) updateData.vetId = vetId ? parseInt(vetId) : null;
-    if (petId) updateData.petId = parseInt(petId);
+    if (status) updateData.status = status;
+    if (notes !== undefined) updateData.notes = notes;
+    if (vetId !== undefined) updateData.vetId = vetId;
+    if (petId) updateData.petId = petId;
     if (categoryId) updateData.categoryId = categoryId;
 
     if (updateData.vetId && updateData.date) {

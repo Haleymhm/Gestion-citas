@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse, notFoundResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, UpdateCategorySchema } from '@/lib/validations';
 
 export async function GET(
   request: NextRequest,
@@ -34,7 +35,13 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { name, color } = body;
+    const validation = validateBody(UpdateCategorySchema, body);
+
+    if (!validation.success) {
+      return errorResponse(validation.error);
+    }
+
+    const { name, color } = validation.data;
 
     const existing = await prisma.category.findUnique({
       where: { id },

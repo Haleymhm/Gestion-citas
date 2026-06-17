@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { requireStaff, getCurrentUser } from '@/lib/auth-helper';
 import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse } from '@/lib/api-response';
 import { createAuditLog, getClientIp } from '@/lib/audit';
+import { validateBody, CreateAppointmentSchema } from '@/lib/validations';
 import type { AppointmentStatus } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
@@ -97,11 +98,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { date, reason, categoryId, petId, vetId, notes, status } = body;
+    const validation = validateBody(CreateAppointmentSchema, body);
 
-    if (!date || !reason || !petId || !categoryId) {
-      return errorResponse('Fecha, motivo, categoría y mascota son requeridos');
+    if (!validation.success) {
+      return errorResponse(validation.error);
     }
+
+    const { date, reason, categoryId, petId, vetId, notes, status } = validation.data;
 
     const categoryExists = await prisma.category.findUnique({
       where: { id: categoryId },
@@ -119,7 +122,7 @@ export async function POST(request: NextRequest) {
     if (vetId) {
       const existingAppointment = await prisma.appointment.findFirst({
         where: {
-          vetId: parseInt(vetId),
+          vetId: vetId,
           date: appointmentDate,
           status: { in: ['PENDING', 'CONFIRMED'] },
         },
@@ -131,7 +134,7 @@ export async function POST(request: NextRequest) {
     }
 
     const pet = await prisma.pet.findUnique({
-      where: { id: parseInt(petId) },
+      where: { id: petId },
     });
 
     if (!pet) {
@@ -150,8 +153,8 @@ export async function POST(request: NextRequest) {
       categoryId,
       status: appointmentStatus,
       notes: notes || null,
-      petId: parseInt(petId),
-      vetId: vetId ? parseInt(vetId) : null,
+      petId: petId,
+      vetId: vetId || null,
     };
 
     const appointment = await prisma.appointment.create({
