@@ -53,6 +53,7 @@ VeteriApp es un software integral para la gestión de clínicas veterinarias, qu
 | Notificaciones | Resend API (pendiente) |
 | UI Components | FullCalendar, ApexCharts |
 | Generación PDF | jsPDF + jspdf-autotable |
+| Testing | Jest 30 + ts-jest + @testing-library |
 
 ## Requisitos Previos
 
@@ -214,6 +215,12 @@ src/
 │   └── logger.ts            # Sistema de logs (pino + winston)
 ├── types/
 │   └── index.ts             # TypeScript DTOs
+├── test/                    # Tests unitarios (Jest + ts-jest)
+│   ├── setup.ts             # Configuración global de mocks
+│   ├── __mocks__/           # Mocks de módulos externos
+│   └── unit/                # Tests unitarios
+│       ├── lib/             # Tests de lib/
+│       └── services/        # Tests de services/
 └── proxy.ts             # Proxy de autenticación (Next.js 16)
 ```
 
@@ -311,7 +318,8 @@ src/
 | Fase 5.1 | Generación de PDF del historial médico | ✅ Completada |
 | Fase 5.2 | Modal de confirmación de citas pendientes | ✅ Completada |
 | Fase 6 | Dashboard y notificaciones | ⏳ Pendiente |
-| Fase 7 | Testing, pulido y despliegue | ⏳ Pendiente |
+| Fase 7 | Testing, pulido y despliegue | 🟡 En progreso |
+| Fase 7.1 | Infraestructura de tests unitarios | ✅ Completada |
 
 ## Scripts Disponibles
 
@@ -323,6 +331,66 @@ pnpm lint         # Verificar código con ESLint
 pnpm typecheck    # Verificar tipos con TypeScript
 pnpm prisma       # Gestionar migraciones de Prisma
 ```
+
+## Testing
+
+El proyecto cuenta con una infraestructura completa de tests unitarios utilizando **Jest 30**, **ts-jest** y **@testing-library**.
+
+### Estructura de Tests
+
+```
+src/
+├── test/
+│   ├── setup.ts                    # Configuración global de mocks
+│   ├── __mocks__/
+│   │   └── jose.ts                 # Mock de la librería jose (JWT)
+│   └── unit/
+│       ├── lib/
+│       │   ├── validations.test.ts  # Tests de schemas Zod (166 tests)
+│       │   ├── jwt.test.ts          # Tests de autenticación JWT (18 tests)
+│       │   ├── api-response.test.ts # Tests de helpers API (22 tests)
+│       │   └── audit.test.ts        # Tests de auditoría (28 tests)
+│       └── services/
+│           └── audit-signature.test.ts # Tests de firma criptográfica (29 tests)
+├── lib/
+│   ├── validations.ts              # 50+ schemas Zod para validación
+│   ├── jwt.ts                      # Creación y verificación de tokens JWT
+│   ├── api-response.ts             # Helpers de respuestas API estandarizadas
+│   └── audit.ts                    # Sistema de auditoría con hash criptográfico
+└── services/
+    └── audit-signature.ts          # Funciones de hash y firma para integridad
+```
+
+### Scripts de Testing
+
+```bash
+pnpm test          # Ejecutar tests en modo watch
+pnpm test:run      # Ejecutar tests una vez
+pnpm test:coverage # Ejecutar tests con coverage report
+```
+
+### Cobertura de Tests
+
+| Módulo | Tests | Descripción |
+|--------|-------|-------------|
+| `validations.ts` | 166 | Todos los schemas Zod (Login, Register, CreateUser, etc.) |
+| `jwt.ts` | 18 | createToken, verifyToken, expiración, payloads |
+| `api-response.ts` | 22 | successResponse, errorResponse, unauthorizedResponse, etc. |
+| `audit.ts` | 28 | detectFieldChanges, getClientIp, createAuditLog |
+| `audit-signature.ts` | 29 | calculateHash, generateSignature, verifySignature |
+| **Total** | **263** | **Cobertura de módulos core** |
+
+### Mocks Configurados
+
+- `@/lib/prisma` - Cliente Prisma mockeado para evitar acceso a BD
+- `@/lib/logger` - Logger mockeado (pino + winston)
+- `jose` - JWT mockeado para testing de autenticación
+
+### Configuración
+
+- **Jest config**: `jest.config.js`
+- **Setup de tests**: `src/test/setup.ts`
+- **Coverage**: Se genera en carpeta `coverage/` (HTML y LCOV)
 
 ## Licencia
 

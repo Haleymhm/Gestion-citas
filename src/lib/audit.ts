@@ -18,7 +18,7 @@ interface UserInfo {
   email: string;
 }
 
-function detectFieldChanges<T extends Record<string, unknown>>(
+export function detectFieldChanges<T extends Record<string, unknown>>(
   before: T | null,
   after: T,
   fieldsToIgnore: string[] = ['createdAt', 'updatedAt', 'id']

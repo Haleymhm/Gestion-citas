@@ -10,7 +10,11 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:run": "jest --no-cache",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@fullcalendar/core": "^6.1.19",
@@ -51,16 +55,22 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
     "@hookform/resolvers": "^5.4.0",
+    "@rolldown/binding-linux-x64-gnu": "^1.1.2",
     "@svgr/webpack": "^8.1.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.19.25",
     "@types/react": "^19.2.1",
     "@types/react-dom": "^19.2.1",
     "@types/react-transition-group": "^4.4.12",
+    "@vitejs/plugin-react": "^6.0.2",
     "dotenv": "^17.4.2",
     "eslint": "^9.39.1",
     "eslint-config-next": "16.0.7",
+    "jest": "^30.4.2",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.17",
+    "ts-jest": "^29.4.11",
     "typescript": "^5.9.3"
   },
   "overrides": {
