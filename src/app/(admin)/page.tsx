@@ -1,42 +1,104 @@
-import type { Metadata } from "next";
-import { EcommerceMetrics } from "@/components/ecommerce/EcommerceMetrics";
-import React from "react";
-import MonthlyTarget from "@/components/ecommerce/MonthlyTarget";
-import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
-import StatisticsChart from "@/components/ecommerce/StatisticsChart";
-import RecentOrders from "@/components/ecommerce/RecentOrders";
-import DemographicCard from "@/components/ecommerce/DemographicCard";
+import type { Metadata } from 'next';
+import { cookies, headers } from 'next/headers';
+import { prisma } from '@/lib/prisma';
+import DashboardPanel from '@/components/dashboard/DashboardPanel';
+import { computeDashboardMetrics } from '@/services/dashboard-metrics';
+import type { DashboardMetricsDTO, DashboardRange } from '@/types';
+import type { Role } from '@prisma/client';
 
 export const metadata: Metadata = {
-  title:
-    "VeteriApp Gestión Integral Veterinaria",
-  description: "Administra tus citas, clientes y mascotas de manera eficiente con nuestra plataforma fácil de usa",
+  title: 'Panel | VeteriApp Gestión Integral Veterinaria',
+  description: 'Resumen operativo de citas, mascotas y distribución por especie.',
 };
 
-export default function Ecommerce() {
-  return (
-    <div className="grid grid-cols-12 gap-4 md:gap-6">
-      <div className="col-span-12 space-y-6 xl:col-span-7">
-        <EcommerceMetrics />
+const ALLOWED_RANGES: DashboardRange[] = ['month', 'prev', 'quarter', 'year'];
 
-        <MonthlySalesChart />
-      </div>
+function parseRange(raw: string | string[] | undefined): DashboardRange {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  if (value && (ALLOWED_RANGES as string[]).includes(value)) {
+    return value as DashboardRange;
+  }
+  return 'month';
+}
 
-      <div className="col-span-12 xl:col-span-5">
-        <MonthlyTarget />
-      </div>
+function serializeDates(obj: unknown): unknown {
+  if (obj instanceof Date) {
+    return { __date: obj.toISOString() };
+  }
+  if (Array.isArray(obj)) {
+    return obj.map((v) => serializeDates(v));
+  }
+  if (obj && typeof obj === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+      out[k] = serializeDates(v);
+    }
+    return out;
+  }
+  return obj;
+}
 
-      <div className="col-span-12">
-        <StatisticsChart />
-      </div>
+interface PageProps {
+  searchParams: Promise<{ range?: string | string[] }>;
+}
 
-      <div className="col-span-12 xl:col-span-5">
-        <DemographicCard />
-      </div>
+export default async function HomePage({ searchParams }: PageProps) {
+  const { range } = await searchParams;
+  const selectedRange = parseRange(range);
 
-      <div className="col-span-12 xl:col-span-7">
-        <RecentOrders />
+  const hdrs = await headers();
+  const userId = hdrs.get('x-user-id');
+  const role = hdrs.get('x-user-role') as Role | null;
+  const email = hdrs.get('x-user-email');
+  const firstName = hdrs.get('x-user-firstname') ?? '';
+  const lastName = hdrs.get('x-user-lastname') ?? '';
+
+  if (!userId || !role) {
+    void cookies();
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          No se pudo recuperar la sesión actual. Vuelve a iniciar sesión.
+        </p>
       </div>
-    </div>
-  );
+    );
+  }
+
+  if (role === 'CLIENT') {
+    return (
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          Esta vista está reservada al personal de la veterinaria.
+        </p>
+      </div>
+    );
+  }
+
+  const user = {
+    userId: parseInt(userId),
+    role,
+    firstName,
+    lastName,
+    email: email ?? '',
+  };
+
+  let raw: Awaited<ReturnType<typeof computeDashboardMetrics>>;
+  try {
+    raw = await computeDashboardMetrics(prisma, user, selectedRange);
+  } catch (err) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Dashboard render error:', err);
+    }
+    return (
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 dark:border-rose-900/40 dark:bg-rose-900/20">
+        <p className="text-sm text-rose-700 dark:text-rose-300">
+          No fue posible cargar las métricas del panel. Inténtalo nuevamente en unos minutos.
+        </p>
+      </div>
+    );
+  }
+
+  const metrics: DashboardMetricsDTO = serializeDates(raw) as DashboardMetricsDTO;
+
+  return <DashboardPanel metrics={metrics} initialRange={selectedRange} />;
 }

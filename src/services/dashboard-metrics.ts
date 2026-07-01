@@ -93,11 +93,11 @@ export function getThisMonthDateRange(now: Date = new Date()): { start: Date; en
   return { start, end };
 }
 
-function emptyStatusMap<T>(statuses: readonly T[]): Record<T, number> {
+function emptyStatusMap(statuses: readonly AppointmentStatus[]): Record<AppointmentStatus, number> {
   return statuses.reduce((acc, s) => {
     acc[s] = 0;
     return acc;
-  }, {} as Record<T, number>);
+  }, {} as Record<AppointmentStatus, number>);
 }
 
 interface VetFilter {
@@ -165,7 +165,7 @@ export async function computeDashboardMetrics(
     rangeGroups,
     speciesGroups,
     activePets,
-    newPetsThisMonth,
+    newThisMonth,
     upcoming,
     topVetGroups,
   ] = await Promise.all([
