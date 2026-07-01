@@ -27,17 +27,25 @@ VeteriApp es un software integral para la gestión de clínicas veterinarias, qu
   - Panel de notificaciones en el calendario con conteo de citas pendientes
   - Modal interactivo para confirmar o cancelar citas pendientes de forma rápida
   - Integración directa con el flujo de reversa de citas del cliente
+- **Dashboard Veterinario (Fase 6)** (Nueva funcionalidad):
+  - KPIs en tiempo real: citas del día, mascotas activas, ingresos (placeholder), próxima cita
+  - Distribución por especie (ApexCharts donut)
+  - Citas por estado (ApexCharts bar horizontal)
+  - Top veterinarios por citas atendidas
+  - Próximas 5 citas como lista con badge de estado
+  - Selector de rango (Mes actual / Mes anterior / Trimestre / Año) vía URL `?range=`
+  - Filtro automático por rol (VET solo ve sus métricas, RN-16)
 - **Validación de Requests con Zod**:
   - Todos los endpoints de API validados con schemas Zod
   - Tipos de datos verificados (emails, UUIDs, fechas ISO)
   - Validación de rangos y valores permitidos (enums, números positivos)
   - Errores estructurados con ruta del campo y mensaje descriptivo
 
-### Funcionalidades Pendientes (Fases 6-7)
+### Funcionalidades Pendientes (Fase 6+)
 
-- Dashboard con estadísticas (ApexCharts)
 - Sistema de notificaciones por email (Resend)
 - Recordatorios automáticos de citas
+- Modelo de ingresos real (Invoice / price por categoría) para reemplazar el placeholder del dashboard
 
 ## Stack Tecnológico
 
@@ -258,6 +266,9 @@ src/
 - `GET/PUT/DELETE /api/v1/medical-records/[id]` - Gestionar entrada individual
 - `GET/POST /api/v1/medical-records/[id]/exams` - Adjuntos de exámenes
 
+### Dashboard (Fase 6)
+- `GET /api/v1/dashboard?range=month|prev|quarter|year` - Métricas agregadas (KPIs, distribuciones, top vets, próximas citas)
+
 ### Citas
 - `GET/POST /api/v1/appointments` - Listar/Crear citas
 - `GET/PUT/DELETE /api/v1/appointments/[id]` - Gestionar cita individual
@@ -317,7 +328,8 @@ src/
 | Fase 5 | Módulo de historial médico | ✅ Completada |
 | Fase 5.1 | Generación de PDF del historial médico | ✅ Completada |
 | Fase 5.2 | Modal de confirmación de citas pendientes | ✅ Completada |
-| Fase 6 | Dashboard y notificaciones | ⏳ Pendiente |
+| Fase 6.0 | Dashboard y métricas veterinarias (KPIs, charts, rango) | ✅ Completada |
+| Fase 6.1 | Notificaciones por email (Resend) y recordatorios | ⏳ Pendiente |
 | Fase 7 | Testing, pulido y despliegue | 🟡 En progreso |
 | Fase 7.1 | Infraestructura de tests unitarios | ✅ Completada |
 

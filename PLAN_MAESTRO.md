@@ -382,8 +382,22 @@ model ExamAttachment {
 
 ### Fase 6: Dashboard y Notificaciones (Días 15-16)
 
-* Implementar el Dashboard de estadísticas con ApexCharts.
-* Integrar el servicio de Email (Resend) para confirmaciones y recordatorios.
+**Fase 6.0 — Dashboard Veterinario ✅ COMPLETADA (2026-07-01)**
+
+* Implementar el Dashboard de indicadores reales con datos de Prisma.
+* Endpoint `GET /api/v1/dashboard?range=month|prev|quarter|year` con validación Zod y auditoría.
+* Servicio puro `services/dashboard-metrics.ts` (sin HTTP) para reuso desde server components.
+* KPIs: citas del día, mascotas activas (con citas últimos 12 meses + futuras), ingresos del mes (placeholder 0 hasta existir Invoice/price), próxima cita.
+* Distribuciones: citas por estado (bar horizontal), distribución por especie (donut).
+* Tendencias: ranking de veterinarios por citas en el rango.
+* Lista de próximas 5 citas con badge de estado y color de categoría.
+* Selector de rango persistente en URL.
+* Filtro por rol: `VET` => solo sus citas (RN-16).
+* Tests unitarios en `src/test/unit/services/dashboard-metrics.test.ts` y `src/test/unit/lib/dashboard-query.test.ts`.
+
+**Fase 6.1 — Notificaciones y Recordatorios ⏳ PENDIENTE**
+
+* Integrar el servicio de Email (Resend) para confirmaciones.
 * Implementar lógica de recordatorios automáticos.
 
 ### Fase 7: Testing, Pulido y Despliegue (Días 17-18)

@@ -228,6 +228,14 @@ export const CreateComunaSchema = z.object({
   regionId: z.string().uuid('ID de región inválido'),
 });
 
+export const DashboardRangeSchema = z.enum(['month', 'prev', 'quarter', 'year']);
+export type DashboardRangeInput = z.infer<typeof DashboardRangeSchema>;
+
+export const DashboardQuerySchema = z.object({
+  range: DashboardRangeSchema.optional().default('month'),
+});
+export type DashboardQuery = z.infer<typeof DashboardQuerySchema>;
+
 export function validateBody<T>(
   schema: z.ZodSchema<T>,
   body: unknown
@@ -245,4 +253,15 @@ export function validateBody<T>(
   }
 
   return { success: true, data: result.data };
+}
+
+export function validateQuery<T>(
+  schema: z.ZodSchema<T>,
+  searchParams: URLSearchParams
+): { success: true; data: T } | { success: false; error: string } {
+  const obj: Record<string, string> = {};
+  searchParams.forEach((value, key) => {
+    obj[key] = value;
+  });
+  return validateBody(schema, obj);
 }

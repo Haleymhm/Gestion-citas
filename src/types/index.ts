@@ -138,3 +138,59 @@ export interface MedicalRecordDTO {
   exams?: ExamAttachmentDTO[];
   createdAt: Date;
 }
+
+export type DashboardRange = 'month' | 'prev' | 'quarter' | 'year';
+
+export interface DashboardTodayDTO {
+  total: number;
+  byStatus: Record<AppointmentStatus, number>;
+}
+
+export interface DashboardPetsDTO {
+  active: number;
+  newThisMonth: number;
+}
+
+export interface DashboardRevenueDTO {
+  thisMonth: number;
+  lastMonth: number;
+  percentChange: number;
+}
+
+export interface DashboardUpcomingAppointmentDTO {
+  id: number;
+  date: Date;
+  reason: string;
+  status: AppointmentStatus;
+  petId: number;
+  petName: string;
+  ownerName: string;
+  vetId: number | null;
+  vetName: string | null;
+  categoryName: string;
+  categoryColor: string;
+}
+
+export interface DashboardSpeciesBucketDTO {
+  species: string;
+  count: number;
+}
+
+export interface DashboardTopVetDTO {
+  vetId: number;
+  vetName: string;
+  count: number;
+}
+
+export interface DashboardMetricsDTO {
+  range: DashboardRange;
+  rangeLabel: string;
+  generatedAt: Date;
+  today: DashboardTodayDTO;
+  pets: DashboardPetsDTO;
+  revenue: DashboardRevenueDTO;
+  appointmentsByStatus: Record<AppointmentStatus, number>;
+  speciesDistribution: DashboardSpeciesBucketDTO[];
+  upcomingAppointments: DashboardUpcomingAppointmentDTO[];
+  topVets: DashboardTopVetDTO[];
+}
