@@ -21,23 +21,6 @@ function parseRange(raw: string | string[] | undefined): DashboardRange {
   return 'month';
 }
 
-function serializeDates(obj: unknown): unknown {
-  if (obj instanceof Date) {
-    return { __date: obj.toISOString() };
-  }
-  if (Array.isArray(obj)) {
-    return obj.map((v) => serializeDates(v));
-  }
-  if (obj && typeof obj === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-      out[k] = serializeDates(v);
-    }
-    return out;
-  }
-  return obj;
-}
-
 interface PageProps {
   searchParams: Promise<{ range?: string | string[] }>;
 }
@@ -98,7 +81,7 @@ export default async function HomePage({ searchParams }: PageProps) {
     );
   }
 
-  const metrics: DashboardMetricsDTO = serializeDates(raw) as DashboardMetricsDTO;
+  const metrics = raw as DashboardMetricsDTO;
 
   return <DashboardPanel metrics={metrics} initialRange={selectedRange} />;
 }
