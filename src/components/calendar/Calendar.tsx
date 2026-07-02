@@ -6,7 +6,8 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
-import type { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import type { EventInput, DateSelectArg, EventClickArg, EventMountArg } from "@fullcalendar/core";
+import AppointmentPill from "./AppointmentPill";
 import styles from "./Calendar.module.css";
 
 interface Vet {
@@ -53,11 +54,11 @@ interface Category {
 }
 
 const statusColors: Record<string, string> = {
-  PENDING: "#f59e0b",
-  CONFIRMED: "#10b981",
-  COMPLETED: "#6b7280",
-  CANCELLED: "#ef4444",
-  NO_SHOW: "#8b5cf6",
+  PENDING: "#EF4444",
+  CONFIRMED: "#10B981",
+  COMPLETED: "#6B7280",
+  CANCELLED: "#94A3B8",
+  NO_SHOW: "#8B5CF6",
 };
 
 const statusLabels: Record<string, string> = {
@@ -154,13 +155,40 @@ export default function Calendar() {
     id: apt.id.toString(),
     title: `${apt.category?.name || "Sin categoría"}: ${apt.pet?.name} - ${apt.reason}`,
     start: apt.date,
-    backgroundColor: `${apt.category?.color || "#6b7280"}30`,
+    backgroundColor: `${apt.category?.color || "#6b7280"}15`,
     borderColor: apt.category?.color || "#6b7280",
-    borderWidth: 3,
+    borderWidth: 2,
+    textColor: "#1A1A1A",
     extendedProps: {
       appointment: apt,
+      status: apt.status,
+      categoryColor: apt.category?.color || "#6b7280",
     },
+    classNames: [`fc-event-status-${apt.status.toLowerCase()}`],
   }));
+
+  const renderEventContent = (eventInfo: { event: { extendedProps: { status: string; categoryColor: string; appointment: Appointment } } }) => {
+    const { status, categoryColor, appointment } = eventInfo.event.extendedProps;
+    return (
+      <div className="flex items-center gap-2 py-1 px-2 overflow-hidden">
+        <AppointmentPill status={status} categoryColor={categoryColor} size="sm" />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-xs truncate dark:text-gray-100">
+            {appointment.pet?.name}
+          </p>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+            {appointment.category?.name}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  const handleEventDidMount = (mountInfo: EventMountArg) => {
+    const { status } = mountInfo.event.extendedProps;
+    const statusClass = `fc-event-status-${status.toLowerCase()}`;
+    mountInfo.el.classList.add(statusClass);
+  };
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     resetForm();
@@ -298,6 +326,8 @@ export default function Calendar() {
           selectable={true}
           select={handleDateSelect}
           eventClick={handleEventClick}
+          eventContent={renderEventContent}
+          eventDidMount={handleEventDidMount}
           height="auto"
           locale="es"
           buttonText={{
@@ -443,8 +473,8 @@ export default function Calendar() {
       )}
 
       {showDetailModal && selectedAppointment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-lg p-6 bg-white rounded-lg dark:bg-boxdark">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50  dark:border-b-gray-100">
+          <div className="w-full max-w-lg p-6 bg-white rounded-lg dark:bg-boxdark dark:bg-gray-900">
             <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
               Detalle de Cita
             </h3>
