@@ -5,7 +5,9 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import listPlugin from "@fullcalendar/list";
 import type { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import styles from "./Calendar.module.css";
 
 interface Vet {
   id: number;
@@ -282,10 +284,10 @@ export default function Calendar() {
         </button>
       )}
 
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxgray p-4">
+      <div className={styles.calendarWrapper}>
         <FullCalendar
           ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
           initialView="dayGridMonth"
           headerToolbar={{
             left: "prev,next today",
