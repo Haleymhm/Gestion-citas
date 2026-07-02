@@ -5,6 +5,7 @@ import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse
 import { createAuditLog, getClientIp } from '@/lib/audit';
 import { validateBody, CreateAppointmentSchema } from '@/lib/validations';
 import type { AppointmentStatus } from '@prisma/client';
+import { sendAppointmentCreatedEmail } from '@/lib/email';
 
 export async function GET(request: NextRequest) {
   try {
@@ -192,6 +193,25 @@ export async function POST(request: NextRequest) {
       ipAddress: await getClientIp(request),
       newData: createData as Record<string, unknown>,
     });
+
+    sendAppointmentCreatedEmail({
+      id: appointment.id,
+      date: appointment.date,
+      reason: appointment.reason,
+      status: appointment.status,
+      pet: {
+        name: appointment.pet.name,
+        owner: {
+          firstName: appointment.pet.owner.firstName,
+          lastName: appointment.pet.owner.lastName,
+          email: appointment.pet.owner.email,
+        },
+      },
+      vet: appointment.vet
+        ? { firstName: appointment.vet.firstName, lastName: appointment.vet.lastName }
+        : null,
+      category: { name: appointment.category.name, color: appointment.category.color },
+    }).catch((err) => console.error('[Email] Failed to send appointment created email:', err));
 
     return successResponse(appointment, 'Cita creada exitosamente', 201);
   } catch (error) {

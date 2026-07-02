@@ -5,6 +5,7 @@ import { successResponse, errorResponse, unauthorizedResponse, forbiddenResponse
 import { createAuditLog, getClientIp } from '@/lib/audit';
 import { validateBody, UpdateAppointmentSchema } from '@/lib/validations';
 import type { AppointmentStatus } from '@prisma/client';
+import { sendAppointmentConfirmedEmail, sendAppointmentCancelledEmail, sendAppointmentCompletedEmail } from '@/lib/email';
 
 export async function GET(
   request: NextRequest,
@@ -147,6 +148,7 @@ export async function PUT(
       where: { id: parseInt(id) },
       data: updateData,
       include: {
+        category: true,
         pet: {
           include: {
             owner: {
@@ -180,6 +182,35 @@ export async function PUT(
       previousData,
       newData: updateData,
     });
+
+    if (updateData.status) {
+      const emailData = {
+        id: appointment.id,
+        date: appointment.date,
+        reason: appointment.reason,
+        status: updateData.status,
+        pet: {
+          name: appointment.pet.name,
+          owner: {
+            firstName: appointment.pet.owner.firstName,
+            lastName: appointment.pet.owner.lastName,
+            email: appointment.pet.owner.email,
+          },
+        },
+        vet: appointment.vet
+          ? { firstName: appointment.vet.firstName, lastName: appointment.vet.lastName }
+          : null,
+        category: { name: appointment.category.name, color: appointment.category.color },
+      };
+
+      if (updateData.status === 'CONFIRMED') {
+        sendAppointmentConfirmedEmail(emailData).catch((err) => console.error('[Email] Failed to send confirmation email:', err));
+      } else if (updateData.status === 'CANCELLED') {
+        sendAppointmentCancelledEmail(emailData).catch((err) => console.error('[Email] Failed to send cancellation email:', err));
+      } else if (updateData.status === 'COMPLETED') {
+        sendAppointmentCompletedEmail(emailData).catch((err) => console.error('[Email] Failed to send completion email:', err));
+      }
+    }
 
     return successResponse(appointment, 'Cita actualizada exitosamente');
   } catch (error) {
