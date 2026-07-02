@@ -8,6 +8,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import listPlugin from "@fullcalendar/list";
 import type { EventInput, DateSelectArg, EventClickArg, EventMountArg } from "@fullcalendar/core";
 import AppointmentPill from "./AppointmentPill";
+import { useCalendarContext } from "./CalendarContext";
 import styles from "./Calendar.module.css";
 
 interface Vet {
@@ -29,7 +30,7 @@ interface Pet {
   };
 }
 
-interface Appointment {
+export interface Appointment {
   id: number;
   date: string;
   reason: string;
@@ -69,8 +70,15 @@ const statusLabels: Record<string, string> = {
   NO_SHOW: "No asistida",
 };
 
-export default function Calendar() {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+export interface CalendarProps {
+  onOpenCreateModal?: () => void;
+  onOpenPendingModal?: () => void;
+  externalAppointments?: Appointment[];
+  setExternalAppointments?: (appts: Appointment[]) => void;
+}
+
+export default function Calendar({ onOpenCreateModal, onOpenPendingModal, externalAppointments, setExternalAppointments }: CalendarProps) {
+  const [appointments, setAppointments] = useState<Appointment[]>(externalAppointments || []);
   const [vets, setVets] = useState<Vet[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [allPets, setAllPets] = useState<Pet[]>([]);
@@ -80,6 +88,8 @@ export default function Calendar() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
   const calendarRef = useRef<FullCalendar>(null);
+
+  const ctx = useCalendarContext();
 
   const [form, setForm] = useState({
     date: "",
@@ -97,6 +107,12 @@ export default function Calendar() {
     fetchAllPets();
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (externalAppointments && setExternalAppointments) {
+      setAppointments(externalAppointments);
+    }
+  }, [externalAppointments, setExternalAppointments]);
 
   const fetchAllPets = async () => {
     try {
@@ -131,6 +147,10 @@ export default function Calendar() {
       const data = await res.json();
       if (data.success) {
         setAppointments(data.data);
+        ctx.setAppointments(data.data);
+        if (setExternalAppointments) {
+          setExternalAppointments(data.data);
+        }
       }
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -200,6 +220,9 @@ export default function Calendar() {
       time: timeStr,
     }));
     setShowModal(true);
+    if (onOpenCreateModal) {
+      onOpenCreateModal();
+    }
   };
 
   const handleEventClick = (clickInfo: EventClickArg) => {
@@ -303,7 +326,12 @@ export default function Calendar() {
     <div className="space-y-4">
       {pendingCount > 0 && (
         <button
-          onClick={() => setShowPendingModal(true)}
+          onClick={() => {
+            setShowPendingModal(true);
+            if (onOpenPendingModal) {
+              onOpenPendingModal();
+            }
+          }}
           className="w-full p-4 mb-4 text-left bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 dark:bg-amber-900/20 dark:border-amber-800 dark:hover:bg-amber-900/30 transition-colors cursor-pointer"
         >
           <p className="text-sm text-amber-800 dark:text-amber-200">
