@@ -316,92 +316,147 @@ model ExamAttachment {
 
 ---
 
-## 7. Fases de Implementación del Desarrollo
+## 7. Fases de Implementacion del Desarrollo
 
-### Fase 1: Inicialización e Integración del Template (Días 1-2)
+### Fase 1: Inicializacion e Integracion del Template (Dias 1-2) ✅ COMPLETADA
 
 * Copiar y limpiar el template base en el repositorio.
-* Configurar el proyecto Next.js con Prisma y la conexión a Supabase.
+* Configurar el proyecto Next.js con Prisma y la conexion a Supabase.
 * Establecer la estructura de rutas: `(admin)`, `(portal)`, `(auth)`.
 * Instalar dependencias faltantes (jose, bcryptjs, resend).
 
-### Fase 2: Modelado de Datos y Autenticación (Días 3-4)
+### Fase 2: Modelado de Datos y Autenticacion (Dias 3-4) ✅ COMPLETADA
 
 * Definir el `schema.prisma` final.
-* Ejecutar la primera migración (`prisma migrate dev`).
+* Ejecutar la primera migracion (`prisma migrate dev`).
 * Implementar el sistema de registro y login (API Routes + JWT en cookies).
-* Desarrollar el Middleware de protección de rutas por roles.
+* Desarrollar el Middleware de proteccion de rutas por roles.
 
-### Fase 3: Módulos de Gestión (Días 5-8)
+### Fase 3: Modulos de Gestion (Dias 5-8) ✅ COMPLETADA
 
 * CRUD de Usuarios y Clientes.
 * CRUD de Mascotas.
 * UI con componentes del template (tablas, formularios).
 
-### Fase 4: Módulo de Citas y Calendario (Días 9-12)
+### Fase 4: Modulo de Citas y Calendario (Dias 9-12) ✅ COMPLETADA
 
-* Integración del componente FullCalendar para el staff.
-* Implementar la lógica de creación de citas (offline y online).
-* Desarrollar el flujo de confirmación manual (`PENDING` -> `CONFIRMED`).
+* Integracion del componente FullCalendar para el staff.
+* Implementar la logica de creacion de citas (offline y online).
+* Desarrollar el flujo de confirmacion manual (`PENDING` -> `CONFIRMED`).
 * Desarrollar el portal del cliente para solicitar citas.
+* **Calendario interactivo con:**
+  * Panel lateral (side panel) con resumen del dia, proxima cita, atajos rapidos
+  * Sistema de disenio clinico personalizado con CSS Modules (`Calendar.module.css`, `CalendarSidePanel.module.css`)
+  * Modal de citas pendientes con contador y acciones rapidas
+  * Modal de detalle de cita con cambio de estados y eliminacion
+  * Notificacion visual de citas pendientes
+  * Validacion de conflicto de horario por veterinario
 
-### Fase 5: Módulo de Historial Médico (Días 13-16) ✅ COMPLETADA
+### Fase 5: Modulo de Historial Medico (Dias 13-16) ✅ COMPLETADA
 
-**Implementación completada (2026-06-09):**
+**Implementacion completada (2026-06-09):**
 
 * **Modelos de datos (Prisma):**
   * Nuevo enum `DewormingType` (INTERNAL, EXTERNAL, BOTH).
-  * Modelo `VitalSigns` para constantes fisiológicas (peso, temperatura, FC, FR, etc.).
-  * Modelo `ExamAttachment` para adjuntos de exámenes (recetas, radiografías).
+  * Modelo `VitalSigns` para constantes fisiologicas (peso, temperatura, FC, FR, etc.).
+  * Modelo `ExamAttachment` para adjuntos de examenes (recetas, radiografias).
   * Modelo `Vaccination` con campos para tipo de vacuna, fechas y fabricante.
-  * Modelo `Deworming` con tipo de parásito y producto.
-  * Modelo `SurgicalHistory` para antecedentes quirúrgicos.
-  * Modelo `ChronicCondition` para alergias y patologías crónicas.
+  * Modelo `Deworming` con tipo de parasito y producto.
+  * Modelo `SurgicalHistory` para antecedentes quirurgicos.
+  * Modelo `ChronicCondition` para alergias y patologias cronicas.
   * Actualizado `MedicalRecord` con campos `date`, `diagnosis`, `treatment` y relaciones.
 
 * **API Routes:**
   * `GET/POST /api/v1/medical-records` - CRUD de atenciones.
-  * `GET/PUT/DELETE /api/v1/medical-records/[id]` - Gestión individual.
+  * `GET/PUT/DELETE /api/v1/medical-records/[id]` - Gestion individual.
   * `GET/POST /api/v1/medical-records/[id]/exams` - Adjuntos.
   * `GET/POST /api/v1/pets/[id]/vaccinations` - Vacunas.
-  * `GET/POST /api/v1/pets/[id]/deworming` - Desparasitación.
-  * `GET/POST /api/v1/pets/[id]/surgical-history` - Quirúrgicos.
-  * `GET/POST /api/v1/pets/[id]/chronic-conditions` - Alergias/Patologías.
+  * `GET/POST /api/v1/pets/[id]/deworming` - Desparasitacion.
+  * `GET/POST /api/v1/pets/[id]/surgical-history` - Quirurgicos.
+  * `GET/POST /api/v1/pets/[id]/chronic-conditions` - Alergias/Patologias.
 
 * **Frontend Admin (`/historial-medico`):**
   * Selector de mascota.
-  * Tabs: Resumen, Vacunas, Desparasitación, Quirúrgicos, Consultas, Alergias/Patologías.
-  * Dashboard con estadísticas visuales por categoría.
-  * Formularios modales para registrar cada tipo de dato.
-  * Vista detallada de consultas con constantes fisiológicas y notas.
+  * Tabs: Resumen, Vacunas, Desparasitacion, Quirurgicos, Consultas, Alergias/Patologias.
+  * Dashboard con estadisticas visuales por categoria.
+  * Formularios modales para registrar cada tipo of dato.
+  * Vista detallada de consultas con constantes fisiologicas y notas.
 
 * **Frontend Portal Cliente (`/portal/historial-medico`):**
   * Selector de mascota del cliente.
-  * Vista simplificada con tabs por categoría.
-  * Solo notas públicas visibles para el cliente.
+  * Vista simplificada con tabs por categoria.
+  * Solo notas publicas visibles para el cliente.
+  * Generacion de PDF del historial medico.
 
-### Fase 6: Dashboard y Notificaciones (Días 15-16)
+### Fase 6: Dashboard, Notificaciones y Email (Dias 15-18) ✅ COMPLETADA
 
 **Fase 6.0 — Dashboard Veterinario ✅ COMPLETADA (2026-07-01)**
 
 * Implementar el Dashboard de indicadores reales con datos de Prisma.
-* Endpoint `GET /api/v1/dashboard?range=month|prev|quarter|year` con validación Zod y auditoría.
+* Endpoint `GET /api/v1/dashboard?range=month|prev|quarter|year` con validacion Zod y auditoria.
 * Servicio puro `services/dashboard-metrics.ts` (sin HTTP) para reuso desde server components.
-* KPIs: citas del día, mascotas activas (con citas últimos 12 meses + futuras), ingresos del mes (placeholder 0 hasta existir Invoice/price), próxima cita.
-* Distribuciones: citas por estado (bar horizontal), distribución por especie (donut).
+* KPIs: citas del dia, mascotas activas (con citas ultimos 12 meses + futuras), ingresos del mes (placeholder 0 hasta existir Invoice/price), proxima cita.
+* Distribuciones: citas por estado (bar horizontal), distribucion por especie (donut).
 * Tendencias: ranking de veterinarios por citas en el rango.
-* Lista de próximas 5 citas con badge de estado y color de categoría.
+* Lista de proximas 5 citas con badge de estado y color de categoria.
 * Selector de rango persistente en URL.
 * Filtro por rol: `VET` => solo sus citas (RN-16).
 * Tests unitarios en `src/test/unit/services/dashboard-metrics.test.ts` y `src/test/unit/lib/dashboard-query.test.ts`.
 
-**Fase 6.1 — Notificaciones y Recordatorios ⏳ PENDIENTE**
+**Fase 6.1 — Notificaciones por Email ✅ COMPLETADA (2026-07-02)**
 
-* Integrar el servicio de Email (Resend) para confirmaciones.
-* Implementar lógica de recordatorios automáticos.
+* Integracion con Resend API para envio de emails transaccionales.
+* 4 Templates React Email (HTML):
+  * `appointment-created.tsx` - Cita creada/solicitada
+  * `appointment-confirmed.tsx` - Cita confirmada
+  * `appointment-cancelled.tsx` - Cita cancelada
+  * `appointment-completed.tsx` - Cita completada
+* Layout base reutilizable (`base.layout.tsx`)
+* Emails automaticos disparados por API de citas (POST `appointments/`, PUT `appointments/[id]`)
+* Manejo de errores no bloqueante con logs en consola
+* Soporte para modo test (`resend.dev` domain en desarrollo)
 
-### Fase 7: Testing, Pulido y Despliegue (Días 17-18)
+**Fase 6.2 — Recordatorios Automaticos ⏳ PENDIENTE**
+
+* Implementar cron jobs (Vercel Cron o similares).
+* Recordatorio de citas 24h antes.
+* Recordatorio de vacunas proximas a vencer.
+* Follow-up post-consulta.
+
+### Fase 7: Testing, Pulido y Despliegue (Dias 17-18) 🟡 EN PROGRESO
 
 * Pruebas funcionales de cada flujo.
-* Corrección de bugs y optimización de rendimiento.
+* Correccion de bugs y optimizacion de rendimiento.
 * Despliegue en Vercel.
+
+### Fase 8: Modulos Faltantes y Mejoras (Post-MVP)
+
+#### 8.1 Portal del Cliente (Parcial)
+- **Completar `/portal/mis-mascotas`** - Listado de mascotas del cliente con detalle
+- **Perfil de usuario real** (datos reales, no estaticos)
+- Recuperacion de contrasena
+
+#### 8.2 Facturacion e Ingresos
+- Modelo `Invoice` en Prisma
+- Campo `price` en `Category`
+- CRUD de facturas y calculo real de ingresos en dashboard
+
+#### 8.3 Subida de Archivos
+- Integracion con almacenamiento (Supabase Storage / S3 / Cloudinary)
+- UI para adjuntar examenes, radiografias, recetas al historial medico
+
+#### 8.4 Configuracion del Sistema
+- Horarios de atencion de la clinica
+- Dias feriados
+- Personalizacion de marca (logo, colores, nombre clinica)
+
+#### 8.5 Reportes y Estadisticas Avanzadas
+- Reporte de ingresos por periodo
+- Reporte de citas por veterinario
+- Estadisticas de cancelaciones/no-shows
+- Exportacion de reportes a Excel/PDF
+
+#### 8.6 Notificaciones Push y SMS
+- Integracion con servicio de SMS (Twilio)
+- Notificaciones push en navegador (Web Push)
+- Preferencias de notificacion por usuario
