@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import Calendar from "@/components/calendar/Calendar";
+import CalendarView from "@/components/calendar/CalendarView";
 
 export const metadata: Metadata = {
   title: "Calendario | VeteriApp Gestión Integral Veterinaria",
@@ -12,7 +12,7 @@ export default function CalendarPage() {
       <h2 className="mb-6 text-xl font-semibold text-gray-800 dark:text-white/90">
         Calendario de Citas
       </h2>
-      <Calendar />
+      <CalendarView />
     </div>
   );
 }

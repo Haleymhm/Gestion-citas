@@ -5,7 +5,11 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import type { EventInput, DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import listPlugin from "@fullcalendar/list";
+import type { EventInput, DateSelectArg, EventClickArg, EventMountArg } from "@fullcalendar/core";
+import AppointmentPill from "./AppointmentPill";
+import { useCalendarContext } from "./CalendarContext";
+import styles from "./Calendar.module.css";
 
 interface Vet {
   id: number;
@@ -26,7 +30,7 @@ interface Pet {
   };
 }
 
-interface Appointment {
+export interface Appointment {
   id: number;
   date: string;
   reason: string;
@@ -51,11 +55,11 @@ interface Category {
 }
 
 const statusColors: Record<string, string> = {
-  PENDING: "#f59e0b",
-  CONFIRMED: "#10b981",
-  COMPLETED: "#6b7280",
-  CANCELLED: "#ef4444",
-  NO_SHOW: "#8b5cf6",
+  PENDING: "#EF4444",
+  CONFIRMED: "#10B981",
+  COMPLETED: "#6B7280",
+  CANCELLED: "#94A3B8",
+  NO_SHOW: "#8B5CF6",
 };
 
 const statusLabels: Record<string, string> = {
@@ -66,8 +70,15 @@ const statusLabels: Record<string, string> = {
   NO_SHOW: "No asistida",
 };
 
-export default function Calendar() {
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
+export interface CalendarProps {
+  onOpenCreateModal?: () => void;
+  onOpenPendingModal?: () => void;
+  externalAppointments?: Appointment[];
+  setExternalAppointments?: (appts: Appointment[]) => void;
+}
+
+export default function Calendar({ onOpenCreateModal, onOpenPendingModal, externalAppointments, setExternalAppointments }: CalendarProps) {
+  const [appointments, setAppointments] = useState<Appointment[]>(externalAppointments || []);
   const [vets, setVets] = useState<Vet[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [allPets, setAllPets] = useState<Pet[]>([]);
@@ -77,6 +88,8 @@ export default function Calendar() {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
   const calendarRef = useRef<FullCalendar>(null);
+
+  const ctx = useCalendarContext();
 
   const [form, setForm] = useState({
     date: "",
@@ -94,6 +107,12 @@ export default function Calendar() {
     fetchAllPets();
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (externalAppointments && setExternalAppointments) {
+      setAppointments(externalAppointments);
+    }
+  }, [externalAppointments, setExternalAppointments]);
 
   const fetchAllPets = async () => {
     try {
@@ -128,6 +147,10 @@ export default function Calendar() {
       const data = await res.json();
       if (data.success) {
         setAppointments(data.data);
+        ctx.setAppointments(data.data);
+        if (setExternalAppointments) {
+          setExternalAppointments(data.data);
+        }
       }
     } catch (error) {
       console.error("Error fetching appointments:", error);
@@ -152,13 +175,40 @@ export default function Calendar() {
     id: apt.id.toString(),
     title: `${apt.category?.name || "Sin categoría"}: ${apt.pet?.name} - ${apt.reason}`,
     start: apt.date,
-    backgroundColor: `${apt.category?.color || "#6b7280"}30`,
+    backgroundColor: `${apt.category?.color || "#6b7280"}15`,
     borderColor: apt.category?.color || "#6b7280",
-    borderWidth: 3,
+    borderWidth: 2,
+    textColor: "#1A1A1A",
     extendedProps: {
       appointment: apt,
+      status: apt.status,
+      categoryColor: apt.category?.color || "#6b7280",
     },
+    classNames: [`fc-event-status-${apt.status.toLowerCase()}`],
   }));
+
+  const renderEventContent = (eventInfo: { event: { extendedProps: { status: string; categoryColor: string; appointment: Appointment } } }) => {
+    const { status, categoryColor, appointment } = eventInfo.event.extendedProps;
+    return (
+      <div className="flex items-center gap-2 py-1 px-2 overflow-hidden">
+        <AppointmentPill status={status} categoryColor={categoryColor} size="sm" />
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-xs truncate dark:text-gray-100">
+            {appointment.pet?.name}
+          </p>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 truncate">
+            {appointment.category?.name}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  const handleEventDidMount = (mountInfo: EventMountArg) => {
+    const { status } = mountInfo.event.extendedProps;
+    const statusClass = `fc-event-status-${status.toLowerCase()}`;
+    mountInfo.el.classList.add(statusClass);
+  };
 
   const handleDateSelect = (selectInfo: DateSelectArg) => {
     resetForm();
@@ -170,6 +220,9 @@ export default function Calendar() {
       time: timeStr,
     }));
     setShowModal(true);
+    if (onOpenCreateModal) {
+      onOpenCreateModal();
+    }
   };
 
   const handleEventClick = (clickInfo: EventClickArg) => {
@@ -273,7 +326,12 @@ export default function Calendar() {
     <div className="space-y-4">
       {pendingCount > 0 && (
         <button
-          onClick={() => setShowPendingModal(true)}
+          onClick={() => {
+            setShowPendingModal(true);
+            if (onOpenPendingModal) {
+              onOpenPendingModal();
+            }
+          }}
           className="w-full p-4 mb-4 text-left bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 dark:bg-amber-900/20 dark:border-amber-800 dark:hover:bg-amber-900/30 transition-colors cursor-pointer"
         >
           <p className="text-sm text-amber-800 dark:text-amber-200">
@@ -282,10 +340,10 @@ export default function Calendar() {
         </button>
       )}
 
-      <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxgray p-4">
+      <div className={styles.calendarWrapper}>
         <FullCalendar
           ref={calendarRef}
-          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+          plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]}
           initialView="dayGridMonth"
           headerToolbar={{
             left: "prev,next today",
@@ -296,6 +354,8 @@ export default function Calendar() {
           selectable={true}
           select={handleDateSelect}
           eventClick={handleEventClick}
+          eventContent={renderEventContent}
+          eventDidMount={handleEventDidMount}
           height="auto"
           locale="es"
           buttonText={{
@@ -441,8 +501,8 @@ export default function Calendar() {
       )}
 
       {showDetailModal && selectedAppointment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="w-full max-w-lg p-6 bg-white rounded-lg dark:bg-boxdark">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50  dark:border-b-gray-100">
+          <div className="w-full max-w-lg p-6 bg-white rounded-lg dark:bg-boxdark dark:bg-gray-900">
             <h3 className="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
               Detalle de Cita
             </h3>
