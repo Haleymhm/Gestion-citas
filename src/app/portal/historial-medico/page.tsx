@@ -66,8 +66,9 @@ export default function HistorialMedicoPage() {
   const [dewormingRecords, setDewormingRecords] = useState<Deworming[]>([]);
   const [chronicConditions, setChronicConditions] = useState<ChronicCondition[]>([]);
 
+  // Leer petId del query string al cargar (viene desde /portal/mis-mascotas)
   useEffect(() => {
-    fetchPets();
+    fetchPetsAndSelectDefault();
   }, []);
 
   useEffect(() => {
@@ -76,7 +77,7 @@ export default function HistorialMedicoPage() {
     }
   }, [selectedPetId]);
 
-  const fetchPets = async () => {
+  const fetchPetsAndSelectDefault = async () => {
     try {
       const res = await fetch("/api/v1/pets");
       const data = await res.json();
@@ -84,7 +85,23 @@ export default function HistorialMedicoPage() {
         const allPets = data.data.data || [];
         setPets(allPets);
         if (allPets.length > 0) {
-          setSelectedPetId(allPets[0].id);
+          if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const petIdFromUrl = params.get("petId");
+            if (petIdFromUrl) {
+              const petId = parseInt(petIdFromUrl);
+              // Solo si existe en la lista del cliente
+              if (allPets.some((p: Pet) => p.id === petId)) {
+                setSelectedPetId(petId);
+              } else {
+                setSelectedPetId(allPets[0].id);
+              }
+            } else {
+              setSelectedPetId(allPets[0].id);
+            }
+          } else {
+            setSelectedPetId(allPets[0].id);
+          }
         }
       }
     } catch (error) {

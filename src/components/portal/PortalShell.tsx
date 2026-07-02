@@ -35,6 +35,12 @@ export function PortalShell({ user, children }: PortalShellProps) {
                 <span className="text-xl font-bold text-brand-500">VeteriApp Gestión Integral Veterinaria</span>
               </Link>
               <nav className="hidden md:flex gap-6">
+                  <Link
+                  href="/portal/mis-mascotas"
+                  className="text-sm font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300"
+                >
+                  Mis Mascotas
+                </Link>
                 <Link
                   href="/portal/mis-citas"
                   className="text-sm font-medium text-gray-700 hover:text-brand-500 dark:text-gray-300"
