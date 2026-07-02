@@ -1,0 +1,289 @@
+.sidePanel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .sidePanel {
+    width: 280px;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 1023px) {
+  .sidePanel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    flex-direction: row;
+    gap: 1rem;
+    padding: 1rem;
+    background: #FFFFFF;
+    border-top: 1px solid #E5E2DD;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+    z-index: 40;
+    overflow-x: auto;
+  }
+}
+
+:global(.dark) .sidePanel {
+  background: #1A1A1A;
+  border-color: #2D2D2D;
+}
+
+.section {
+  background: #FFFFFF;
+  border: 1px solid #E5E2DD;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+:global(.dark) .section {
+  background: #1A1A1A;
+  border-color: #2D2D2D;
+}
+
+@media (max-width: 1023px) {
+  .section {
+    flex: 1;
+    min-width: 140px;
+    padding: 0.75rem;
+  }
+}
+
+.sectionTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.75rem;
+}
+
+:global(.dark) .sectionTitle {
+  color: #9CA3AF;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+@media (max-width: 1023px) {
+  .statsGrid {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  background: #F7F5F2;
+  border-radius: 6px;
+  text-align: center;
+}
+
+:global(.dark) .statCard {
+  background: #2D2D2D;
+}
+
+.statCard.confirmed {
+  background: #ECFDF5;
+}
+
+:global(.dark) .statCard.confirmed {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.statCard.pending {
+  background: #FEF3C7;
+}
+
+:global(.dark) .statCard.pending {
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.statNumber {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1A1A1A;
+}
+
+:global(.dark) .statNumber {
+  color: #F3F0EB;
+}
+
+.statCard.confirmed .statNumber {
+  color: #059669;
+}
+
+.statCard.pending .statNumber {
+  color: #D97706;
+}
+
+.statLabel {
+  font-size: 0.625rem;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+:global(.dark) .statLabel {
+  color: #9CA3AF;
+}
+
+.nextAppointmentCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.nextAppointmentHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.nextAppointmentTime {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+:global(.dark) .nextAppointmentTime {
+  color: #F3F0EB;
+}
+
+.nextAppointmentPet {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+:global(.dark) .nextAppointmentPet {
+  color: #F3F0EB;
+}
+
+.nextAppointmentCategory {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+:global(.dark) .nextAppointmentCategory {
+  color: #9CA3AF;
+}
+
+.nextAppointmentOwner {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+:global(.dark) .nextAppointmentOwner {
+  color: #9CA3AF;
+}
+
+.nextAppointmentReason {
+  font-size: 0.75rem;
+  color: #9CA3AF;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+:global(.dark) .nextAppointmentReason {
+  color: #6B7280;
+}
+
+.emptyState {
+  font-size: 0.8125rem;
+  color: #9CA3AF;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.quickActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+@media (max-width: 1023px) {
+  .quickActions {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+}
+
+.quickActionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: #FFFFFF;
+  border: 1px solid #E5E2DD;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #1A1A1A;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+:global(.dark) .quickActionBtn {
+  background: #2D2D2D;
+  border-color: #3D3D3D;
+  color: #F3F0EB;
+}
+
+.quickActionBtn:hover {
+  background: #F7F5F2;
+  border-color: #D1CBC4;
+}
+
+:global(.dark) .quickActionBtn:hover {
+  background: #3D3D3D;
+}
+
+.quickActionIcon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 1023px) {
+  .quickActionBtn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .quickActionIcon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
