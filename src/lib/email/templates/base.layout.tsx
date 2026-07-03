@@ -6,6 +6,7 @@ import {
   Text,
   Hr,
   Link,
+  Section,
 } from '@react-email/components';
 
 interface BaseLayoutProps {

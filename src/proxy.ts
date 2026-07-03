@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify, JWT_SECRET, JWTPayload } from '@/lib/jwt';
 
-const PUBLIC_PATHS = ['/signin', '/signup', '/api/v1/auth/login', '/api/v1/auth/register'];
+const PUBLIC_PATHS = ['/signin', '/signup', '/forgot-password', '/reset-password', '/api/v1/auth/login', '/api/v1/auth/register', '/api/v1/auth/forgot-password', '/api/v1/auth/reset-password'];
 const AUTH_API_PATHS = ['/api/v1/auth/session', '/api/v1/auth/logout'];
 const ADMIN_ONLY_PATHS = ['/usuarios'];
 const STAFF_PATHS = ['/calendar', '/categorias', '/clientes', '/mascotas', '/historial-medico', '/regiones', '/comunas'];

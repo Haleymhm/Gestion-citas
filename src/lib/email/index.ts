@@ -4,6 +4,7 @@ import { AppointmentCreatedEmail } from './templates/appointment-created';
 import { AppointmentConfirmedEmail } from './templates/appointment-confirmed';
 import { AppointmentCancelledEmail } from './templates/appointment-cancelled';
 import { AppointmentCompletedEmail } from './templates/appointment-completed';
+import { PasswordResetEmail } from './templates/password-reset';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -113,6 +114,28 @@ export async function sendAppointmentCompletedEmail(data: AppointmentEmailData) 
   return sendEmail({
     to: data.pet.owner.email,
     subject: `Cita Completada - #${data.id}`,
+    html,
+  });
+}
+
+export async function sendPasswordResetEmail({
+  to,
+  firstName,
+  resetUrl,
+  expiresInMinutes = 60,
+}: {
+  to: string;
+  firstName: string;
+  resetUrl: string;
+  expiresInMinutes?: number;
+}): Promise<{ success: boolean; error?: string }> {
+  const html = await render(
+    PasswordResetEmail({ firstName, resetUrl, expiresInMinutes })
+  );
+
+  return sendEmail({
+    to,
+    subject: 'Restablece tu contraseña - VeteriApp',
     html,
   });
 }
