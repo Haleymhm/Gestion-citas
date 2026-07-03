@@ -5,10 +5,10 @@ import { AppointmentConfirmedEmail } from './templates/appointment-confirmed';
 import { AppointmentCancelledEmail } from './templates/appointment-cancelled';
 import { AppointmentCompletedEmail } from './templates/appointment-completed';
 import { PasswordResetEmail } from './templates/password-reset';
+import { getBranding, ClinicBranding } from '@/services/settings/get-branding';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_EMAIL = 'VeteriApp <noreply@vetriapp.cl>';
 const TEST_DOMAIN = 'resend.dev';
 
 interface AppointmentEmailData {
@@ -45,20 +45,46 @@ function formatDate(date: Date): string {
   }).format(new Date(date));
 }
 
+interface BrandingLike {
+  clinicName: string;
+  primaryColor: string;
+  footerText: string;
+  logoUrl?: string | null;
+  fromEmail?: string;
+  fromName?: string;
+}
+
+function brandingProps(b: ClinicBranding): BrandingLike {
+  return {
+    clinicName: b.clinicName,
+    primaryColor: b.primaryColor,
+    footerText: b.footerText,
+    logoUrl: b.logoUrl,
+  };
+}
+
 async function sendEmail({
   to,
   subject,
   html,
+  fromEmail,
+  fromName,
 }: {
   to: string;
   subject: string;
   html: string;
+  fromEmail?: string;
+  fromName?: string;
 }): Promise<{ success: boolean; error?: string }> {
   const isTest = process.env.NODE_ENV !== 'production';
 
+  const from = isTest
+    ? `onboarding@${TEST_DOMAIN}`
+    : `${fromName || 'VeteriApp'} <${fromEmail || 'noreply@vetriapp.cl'}>`;
+
   try {
     const { error } = await resend.emails.send({
-      from: isTest ? `onboarding@${TEST_DOMAIN}` : FROM_EMAIL,
+      from,
       to: isTest ? [to, `delivered@${TEST_DOMAIN}`] : [to],
       subject,
       html,
@@ -79,42 +105,54 @@ async function sendEmail({
 }
 
 export async function sendAppointmentCreatedEmail(data: AppointmentEmailData) {
-  const html = await render(AppointmentCreatedEmail({ ...data, formatDate }));
+  const branding = await getBranding();
+  const html = await render(AppointmentCreatedEmail({ ...data, formatDate, branding: brandingProps(branding) }));
 
   return sendEmail({
     to: data.pet.owner.email,
-    subject: `Cita Solicitada - #${data.id}`,
+    subject: `${branding.clinicName}: cita solicitada #${data.id}`,
     html,
+    fromEmail: branding.fromEmail,
+    fromName: branding.fromName,
   });
 }
 
 export async function sendAppointmentConfirmedEmail(data: AppointmentEmailData) {
-  const html = await render(AppointmentConfirmedEmail({ ...data, formatDate }));
+  const branding = await getBranding();
+  const html = await render(AppointmentConfirmedEmail({ ...data, formatDate, branding: brandingProps(branding) }));
 
   return sendEmail({
     to: data.pet.owner.email,
-    subject: `Cita Confirmada - #${data.id}`,
+    subject: `${branding.clinicName}: cita confirmada #${data.id}`,
     html,
+    fromEmail: branding.fromEmail,
+    fromName: branding.fromName,
   });
 }
 
 export async function sendAppointmentCancelledEmail(data: AppointmentEmailData) {
-  const html = await render(AppointmentCancelledEmail({ ...data, formatDate }));
+  const branding = await getBranding();
+  const html = await render(AppointmentCancelledEmail({ ...data, formatDate, branding: brandingProps(branding) }));
 
   return sendEmail({
     to: data.pet.owner.email,
-    subject: `Cita Cancelada - #${data.id}`,
+    subject: `${branding.clinicName}: cita cancelada #${data.id}`,
     html,
+    fromEmail: branding.fromEmail,
+    fromName: branding.fromName,
   });
 }
 
 export async function sendAppointmentCompletedEmail(data: AppointmentEmailData) {
-  const html = await render(AppointmentCompletedEmail({ ...data, formatDate }));
+  const branding = await getBranding();
+  const html = await render(AppointmentCompletedEmail({ ...data, formatDate, branding: brandingProps(branding) }));
 
   return sendEmail({
     to: data.pet.owner.email,
-    subject: `Cita Completada - #${data.id}`,
+    subject: `${branding.clinicName}: cita completada #${data.id}`,
     html,
+    fromEmail: branding.fromEmail,
+    fromName: branding.fromName,
   });
 }
 
@@ -129,13 +167,16 @@ export async function sendPasswordResetEmail({
   resetUrl: string;
   expiresInMinutes?: number;
 }): Promise<{ success: boolean; error?: string }> {
+  const branding = await getBranding();
   const html = await render(
-    PasswordResetEmail({ firstName, resetUrl, expiresInMinutes })
+    PasswordResetEmail({ firstName, resetUrl, expiresInMinutes, branding: brandingProps(branding) })
   );
 
   return sendEmail({
     to,
-    subject: 'Restablece tu contraseña - VeteriApp',
+    subject: `${branding.clinicName}: restablece tu contraseña`,
     html,
+    fromEmail: branding.fromEmail,
+    fromName: branding.fromName,
   });
 }

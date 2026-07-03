@@ -24,6 +24,7 @@ type NavItem = {
   icon: React.ReactNode;
   path?: string;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
+  adminOnly?: boolean;
 };
 
 const navItems: NavItem[] = [
@@ -85,18 +86,49 @@ const othersItems: NavItem[] = [
     name: "Registro de Auditoría",
     path: "/audit-logs",
   },
+  {
+    icon: <PlugInIcon />,
+    name: "Configuración",
+    path: "/configuracion",
+    adminOnly: true,
+  },
 ];
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const [userRole, setUserRole] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      try {
+        const res = await fetch("/api/v1/auth/session");
+        const data = await res.json();
+        if (data.success && data.data) {
+          setUserRole(data.data.role);
+        }
+      } catch {
+        // Not logged in
+      }
+    };
+    fetchRole();
+  }, []);
+
+  const filterAdminItems = (items: NavItem[]) =>
+    items.filter((item) => !item.adminOnly || userRole === "ADMIN");
+  void filterAdminItems;
 
   const renderMenuItems = (
     navItems: NavItem[],
     menuType: "main" | "others"
-  ) => (
+  ) => {
+    const visibleItems = navItems.filter(
+      (item) => !item.adminOnly || userRole === "ADMIN"
+    );
+
+    return (
     <ul className="flex flex-col gap-4">
-      {navItems.map((nav, index) => (
+      {visibleItems.map((nav, index) => (
         <li key={nav.name}>
           {nav.subItems ? (
             <button
@@ -215,7 +247,8 @@ const AppSidebar: React.FC = () => {
         </li>
       ))}
     </ul>
-  );
+    );
+  };
 
   const [openSubmenu, setOpenSubmenu] = useState<{
     type: "main" | "others";
@@ -251,6 +284,7 @@ const AppSidebar: React.FC = () => {
 
     // If no submenu item matches, close the open submenu
     if (!submenuMatched) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOpenSubmenu(null);
     }
   }, [pathname,isActive]);

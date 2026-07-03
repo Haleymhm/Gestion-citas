@@ -157,7 +157,7 @@ export default function HistorialMedicoPage() {
 
   const selectedPet = pets.find((p) => p.id === selectedPetId);
 
-  const handleDownloadPDF = () => {
+  const handleDownloadPDF = async () => {
     if (!selectedPet) return;
 
     const pdfData = {
@@ -207,7 +207,7 @@ export default function HistorialMedicoPage() {
       })),
     };
 
-    generateMedicalHistoryPDF(pdfData);
+    await generateMedicalHistoryPDF(pdfData);
   };
 
   return (
