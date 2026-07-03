@@ -268,6 +268,42 @@ export const ResetPasswordSchema = z.object({
     .regex(/[0-9]/, 'Debe contener al menos un número'),
 });
 
+const HexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Debe ser un color hex válido (#RRGGBB)');
+
+const TimeSchema = z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, 'Formato HH:MM requerido');
+
+const DayScheduleSchema = z.object({
+  enabled: z.boolean(),
+  open: TimeSchema,
+  close: TimeSchema,
+}).refine(
+  (data) => !data.enabled || data.open < data.close,
+  { message: 'La hora de apertura debe ser anterior a la de cierre', path: ['close'] }
+);
+
+export const UpdateScheduleSchema = z.object({
+  monday: DayScheduleSchema,
+  tuesday: DayScheduleSchema,
+  wednesday: DayScheduleSchema,
+  thursday: DayScheduleSchema,
+  friday: DayScheduleSchema,
+  saturday: DayScheduleSchema,
+  sunday: DayScheduleSchema,
+});
+
+export const CreateHolidaySchema = z.object({
+  date: z.string().datetime({ message: 'Fecha inválida' }),
+  label: z.string().min(1, 'Etiqueta requerida').max(100),
+});
+
+export const UpdateBrandingSchema = z.object({
+  clinicName: z.string().min(1, 'Nombre requerido').max(100),
+  primaryColor: HexColorSchema,
+  secondaryColor: HexColorSchema,
+  footerText: z.string().min(1, 'Texto de pie requerido').max(200),
+  fromEmail: z.string().email('Email inválido'),
+});
+
 export function validateBody<T>(
   schema: z.ZodSchema<T>,
   body: unknown

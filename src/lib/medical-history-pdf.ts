@@ -1,5 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { imageFromUrl } from "./pdf/image-from-url";
+import { getBranding, hexToRgb, ClinicBranding } from "@/services/settings/get-branding";
 
 interface PetInfo {
   id: number;
@@ -85,16 +87,46 @@ const dewormingTypeLabels: Record<string, string> = {
   BOTH: "Ambos",
 };
 
-export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => {
+export const generateMedicalHistoryPDF = async (data: MedicalHistoryPDFData): Promise<void> => {
+  const branding: ClinicBranding = await getBranding();
+  const primaryRgb = hexToRgb(branding.primaryColor);
+
   const doc = new jsPDF();
 
-  doc.setFontSize(18);
-  doc.setTextColor(41, 98, 255);
-  doc.text("HISTORIAL MÉDICO", 105, 20, { align: "center" });
+  // Header: intentar cargar logo si existe; fallback a texto
+  let logoLoaded = false;
+  let logoWidth = 0;
+  if (branding.logoUrl) {
+    const img = await imageFromUrl(branding.logoUrl);
+    if (img) {
+      try {
+        const logoHeight = 14;
+        logoWidth = 28;
+        doc.addImage(img.dataUrl, img.format, 20, 12, logoWidth, logoHeight);
+        logoLoaded = true;
+      } catch (err) {
+        console.warn('[PDF] No se pudo insertar el logo:', err);
+      }
+    }
+  }
 
-  doc.setFontSize(12);
-  doc.setTextColor(100, 100, 100);
-  doc.text("VeteriApp - Gestión Integral Veterinaria", 105, 28, { align: "center" });
+  // Title (ajustar posición si logo está presente)
+  const titleX = logoLoaded ? 20 + logoWidth + 8 : 105;
+  const titleAlign: "left" | "center" = logoLoaded ? "left" : "center";
+
+  doc.setFontSize(18);
+  doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  doc.text("HISTORIAL MÉDICO", titleX, 20, { align: titleAlign });
+
+  if (logoLoaded) {
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100);
+    doc.text(branding.clinicName, titleX, 26, { align: titleAlign });
+  } else {
+    doc.setFontSize(12);
+    doc.setTextColor(100, 100, 100);
+    doc.text(`${branding.clinicName} - Historial Clínico`, 105, 28, { align: "center" });
+  }
 
   doc.setDrawColor(200, 200, 200);
   doc.line(20, 32, 190, 32);
@@ -133,7 +165,7 @@ export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => 
 
   if (data.vaccinations.length > 0) {
     doc.setFontSize(12);
-    doc.setTextColor(41, 98, 255);
+    doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
     doc.text("VACUNAS", 20, yPos);
     yPos += 5;
 
@@ -149,7 +181,7 @@ export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => 
         v.manufacturer || "-",
       ]),
       theme: "striped",
-      headStyles: { fillColor: [41, 98, 255] },
+      headStyles: { fillColor: [primaryRgb.r, primaryRgb.g, primaryRgb.b] },
       styles: { fontSize: 8 },
       margin: { left: 20, right: 20 },
     });
@@ -160,7 +192,7 @@ export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => 
 
   if (data.deworming.length > 0) {
     doc.setFontSize(12);
-    doc.setTextColor(41, 98, 255);
+    doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
     doc.text("DESPARASITACIONES", 20, yPos);
     yPos += 5;
 
@@ -175,7 +207,7 @@ export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => 
         d.dosage || "-",
       ]),
       theme: "striped",
-      headStyles: { fillColor: [41, 98, 255] },
+      headStyles: { fillColor: [primaryRgb.r, primaryRgb.g, primaryRgb.b] },
       styles: { fontSize: 8 },
       margin: { left: 20, right: 20 },
     });
@@ -191,7 +223,7 @@ export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => 
     }
 
     doc.setFontSize(12);
-    doc.setTextColor(41, 98, 255);
+    doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
     doc.text("ANTECEDENTES QUIRÚRGICOS", 20, yPos);
     yPos += 5;
 
@@ -205,7 +237,7 @@ export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => 
         s.notes || "-",
       ]),
       theme: "striped",
-      headStyles: { fillColor: [41, 98, 255] },
+      headStyles: { fillColor: [primaryRgb.r, primaryRgb.g, primaryRgb.b] },
       styles: { fontSize: 8 },
       margin: { left: 20, right: 20 },
     });
@@ -221,7 +253,7 @@ export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => 
     }
 
     doc.setFontSize(12);
-    doc.setTextColor(41, 98, 255);
+    doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
     doc.text("ALERGIAS / PATOLOGÍAS CRÓNICAS", 20, yPos);
     yPos += 5;
 
@@ -237,7 +269,7 @@ export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => 
         c.notes || "-",
       ]),
       theme: "striped",
-      headStyles: { fillColor: [41, 98, 255] },
+      headStyles: { fillColor: [primaryRgb.r, primaryRgb.g, primaryRgb.b] },
       styles: { fontSize: 8 },
       margin: { left: 20, right: 20 },
     });
@@ -253,7 +285,7 @@ export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => 
     }
 
     doc.setFontSize(12);
-    doc.setTextColor(41, 98, 255);
+    doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
     doc.text("CONSULTAS MÉDICAS", 20, yPos);
     yPos += 5;
 
@@ -317,7 +349,7 @@ export const generateMedicalHistoryPDF = (data: MedicalHistoryPDFData): void => 
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
   doc.text(
-    `Documento generado automáticamente por VeteriApp - Gestión Integral Veterinaria el ${new Date().toLocaleString("es-CL")}`,
+    `${branding.footerText} - Documento generado el ${new Date().toLocaleString("es-CL")}`,
     105,
     290,
     { align: "center" }

@@ -6,6 +6,7 @@ import { createAuditLog, getClientIp } from '@/lib/audit';
 import { validateBody, CreateAppointmentSchema } from '@/lib/validations';
 import type { AppointmentStatus } from '@prisma/client';
 import { sendAppointmentCreatedEmail } from '@/lib/email';
+import { validateAppointmentTime } from '@/services/settings/validate-appointment-time';
 
 export async function GET(request: NextRequest) {
   try {
@@ -118,6 +119,13 @@ export async function POST(request: NextRequest) {
     const appointmentDate = new Date(date);
     if (appointmentDate < new Date()) {
       return errorResponse('No se puede agendar una cita en el pasado');
+    }
+
+    if (user.role === 'CLIENT') {
+      const validation = await validateAppointmentTime(appointmentDate);
+      if (!validation.allowed) {
+        return errorResponse(validation.message || 'Horario no disponible', 400);
+      }
     }
 
     if (vetId) {

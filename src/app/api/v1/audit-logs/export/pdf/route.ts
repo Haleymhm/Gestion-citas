@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       details: log.details,
     }));
 
-    const doc = generateAuditPDF({
+    const doc = await generateAuditPDF({
       logs: formattedLogs,
       startDate,
       endDate,

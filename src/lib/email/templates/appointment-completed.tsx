@@ -23,11 +23,17 @@ interface AppointmentCompletedEmailProps {
     color: string;
   };
   formatDate: (date: Date) => string;
+  branding?: {
+    clinicName: string;
+    primaryColor: string;
+    footerText: string;
+    logoUrl?: string | null;
+  };
 }
 
-export function AppointmentCompletedEmail({ id, pet, date, vet, category, formatDate }: AppointmentCompletedEmailProps) {
+export function AppointmentCompletedEmail({ id, pet, date, vet, category, formatDate, branding }: AppointmentCompletedEmailProps) {
   return (
-    <BaseLayout title="Cita Completada">
+    <BaseLayout title="Cita Completada" branding={branding}>
       <Text style={{ fontSize: '18px', color: '#374151', margin: '0 0 24px 0' }}>
         Hola <strong>{pet.owner.firstName}</strong>,
       </Text>

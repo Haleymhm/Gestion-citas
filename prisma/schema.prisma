@@ -63,6 +63,8 @@ model User {
   dewormingRecords   Deworming[]
   auditLogs          AuditLog[]
   passwordResetTokens PasswordResetToken[]
+  clinicSettings      ClinicSetting[] @relation("ClinicSettingUpdatedBy")
+  clinicHolidaysCreated ClinicHoliday[] @relation("ClinicHolidayCreatedBy")
 }
 
 model Category {
@@ -295,4 +297,26 @@ model AuditLogDetail {
   auditLog   AuditLog @relation(fields: [auditLogId], references: [id], onDelete: Cascade)
 
   @@index([auditLogId])
+}
+
+model ClinicSetting {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json
+  updatedAt   DateTime @updatedAt
+  updatedById Int?
+  updatedBy   User?    @relation("ClinicSettingUpdatedBy", fields: [updatedById], references: [id])
+
+  @@index([key])
+}
+
+model ClinicHoliday {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @unique
+  label       String
+  createdById Int
+  createdBy   User     @relation("ClinicHolidayCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([date])
 }
