@@ -236,6 +236,38 @@ export const DashboardQuerySchema = z.object({
 });
 export type DashboardQuery = z.infer<typeof DashboardQuerySchema>;
 
+export const UpdateProfileSchema = z.object({
+  firstName: z.string().min(1, 'Nombre es requerido').max(100),
+  lastName: z.string().min(1, 'Apellido es requerido').max(100),
+  email: z.string().email('Email inválido'),
+  phone: z.string().max(30).nullable().optional(),
+  address: z.string().max(255).nullable().optional(),
+  regionId: z.string().nullable().optional(),
+  comunaId: z.string().nullable().optional(),
+});
+
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'La contraseña actual es requerida'),
+  newPassword: z
+    .string()
+    .min(8, 'La nueva contraseña debe tener al menos 8 caracteres')
+    .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
+    .regex(/[0-9]/, 'Debe contener al menos un número'),
+});
+
+export const ForgotPasswordSchema = z.object({
+  email: z.string().email('Email inválido'),
+});
+
+export const ResetPasswordSchema = z.object({
+  token: z.string().min(1, 'Token es requerido'),
+  newPassword: z
+    .string()
+    .min(8, 'La contraseña debe tener al menos 8 caracteres')
+    .regex(/[A-Z]/, 'Debe contener al menos una mayúscula')
+    .regex(/[0-9]/, 'Debe contener al menos un número'),
+});
+
 export function validateBody<T>(
   schema: z.ZodSchema<T>,
   body: unknown
