@@ -5,11 +5,17 @@ interface PasswordResetEmailProps {
   firstName: string;
   resetUrl: string;
   expiresInMinutes: number;
+  branding?: {
+    clinicName: string;
+    primaryColor: string;
+    footerText: string;
+    logoUrl?: string | null;
+  };
 }
 
-export function PasswordResetEmail({ firstName, resetUrl, expiresInMinutes }: PasswordResetEmailProps) {
+export function PasswordResetEmail({ firstName, resetUrl, expiresInMinutes, branding }: PasswordResetEmailProps) {
   return (
-    <BaseLayout title="Restablecer contraseña">
+    <BaseLayout title="Restablecer contraseña" branding={branding}>
       <Text style={{ fontSize: '18px', color: '#374151', margin: '0 0 24px 0' }}>
         Hola <strong>{firstName}</strong>,
       </Text>
@@ -27,7 +33,7 @@ export function PasswordResetEmail({ firstName, resetUrl, expiresInMinutes }: Pa
         <Button
           href={resetUrl}
           style={{
-            backgroundColor: '#2563eb',
+            backgroundColor: branding?.primaryColor || '#2563eb',
             color: '#ffffff',
             padding: '12px 32px',
             borderRadius: '8px',
@@ -52,7 +58,7 @@ export function PasswordResetEmail({ firstName, resetUrl, expiresInMinutes }: Pa
       <Text style={{ fontSize: '13px', color: '#6b7280', margin: '0 0 8px 0' }}>
         Si el botón no funciona, copia y pega el siguiente enlace en tu navegador:
       </Text>
-      <Text style={{ fontSize: '12px', color: '#2563eb', margin: 0, wordBreak: 'break-all' }}>
+      <Text style={{ fontSize: '12px', color: branding?.primaryColor || '#2563eb', margin: 0, wordBreak: 'break-all' }}>
         {resetUrl}
       </Text>
     </BaseLayout>

@@ -1,5 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { imageFromUrl } from './pdf/image-from-url';
+import { getBranding, hexToRgb, ClinicBranding } from '@/services/settings/get-branding';
 
 interface AuditLogEntry {
   id: string;
@@ -21,7 +23,7 @@ interface AuditReportData {
 }
 
 const formatDate = (dateStr: string): string => {
-  return new Date(dateStr).toLocaleDateString('es-CL', {
+  return new Date(dateStr).toLocaleString('es-CL', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -37,16 +39,45 @@ const actionLabels: Record<string, string> = {
   DELETE: 'Eliminación',
 };
 
-export const generateAuditPDF = (data: AuditReportData): jsPDF => {
+export const generateAuditPDF = async (data: AuditReportData): Promise<jsPDF> => {
+  const branding: ClinicBranding = await getBranding();
+  const primaryRgb = hexToRgb(branding.primaryColor);
+
   const doc = new jsPDF();
 
+  // Logo en header si existe
+  let logoLoaded = false;
+  let logoWidth = 0;
+  if (branding.logoUrl) {
+    const img = await imageFromUrl(branding.logoUrl);
+    if (img) {
+      try {
+        const logoHeight = 14;
+        logoWidth = 28;
+        doc.addImage(img.dataUrl, img.format, 20, 12, logoWidth, logoHeight);
+        logoLoaded = true;
+      } catch (err) {
+        console.warn('[Audit PDF] No se pudo insertar el logo:', err);
+      }
+    }
+  }
+
   doc.setFontSize(18);
-  doc.setTextColor(41, 98, 255);
-  doc.text('REGISTRO DE AUDITORÍA', 105, 20, { align: 'center' });
+  doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+
+  if (logoLoaded) {
+    doc.text('REGISTRO DE AUDITORÍA', 20 + logoWidth + 8, 20, { align: 'left' });
+  } else {
+    doc.text('REGISTRO DE AUDITORÍA', 105, 20, { align: 'center' });
+  }
 
   doc.setFontSize(12);
   doc.setTextColor(100, 100, 100);
-  doc.text('VeteriApp - Sistema de Gestión de Clínicas Veterinarias', 105, 28, { align: 'center' });
+  if (logoLoaded) {
+    doc.text(branding.clinicName, 20 + logoWidth + 8, 26, { align: 'left' });
+  } else {
+    doc.text(`${branding.clinicName} - Sistema de Gestión`, 105, 28, { align: 'center' });
+  }
 
   doc.setDrawColor(200, 200, 200);
   doc.line(20, 32, 190, 32);
@@ -80,7 +111,7 @@ export const generateAuditPDF = (data: AuditReportData): jsPDF => {
 
   if (data.logs.length > 0) {
     doc.setFontSize(12);
-    doc.setTextColor(41, 98, 255);
+    doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
     doc.text('DETALLE DE OPERACIONES', 20, yPos);
     yPos += 5;
 
@@ -96,7 +127,7 @@ export const generateAuditPDF = (data: AuditReportData): jsPDF => {
         log.entityId,
       ]),
       theme: 'striped',
-      headStyles: { fillColor: [41, 98, 255] },
+      headStyles: { fillColor: [primaryRgb.r, primaryRgb.g, primaryRgb.b] },
       styles: { fontSize: 8 },
       margin: { left: 20, right: 20 },
       columnStyles: {
@@ -122,7 +153,7 @@ export const generateAuditPDF = (data: AuditReportData): jsPDF => {
     }
 
     doc.setFontSize(12);
-    doc.setTextColor(41, 98, 255);
+    doc.setTextColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
     doc.text('CAMBIOS DE CAMPOS (DETALLE)', 20, yPos);
     yPos += 5;
 
@@ -172,7 +203,7 @@ export const generateAuditPDF = (data: AuditReportData): jsPDF => {
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
   doc.text(
-    `Documento generado automáticamente por VeteriApp - ${new Date().toLocaleString('es-CL')}`,
+    `${branding.footerText} - Generado el ${new Date().toLocaleString('es-CL')}`,
     105,
     290,
     { align: 'center' }

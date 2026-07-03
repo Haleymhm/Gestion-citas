@@ -23,11 +23,17 @@ interface AppointmentCancelledEmailProps {
     color: string;
   };
   formatDate: (date: Date) => string;
+  branding?: {
+    clinicName: string;
+    primaryColor: string;
+    footerText: string;
+    logoUrl?: string | null;
+  };
 }
 
-export function AppointmentCancelledEmail({ id, pet, date, category, formatDate }: AppointmentCancelledEmailProps) {
+export function AppointmentCancelledEmail({ id, pet, date, category, formatDate, branding }: AppointmentCancelledEmailProps) {
   return (
-    <BaseLayout title="Cita Cancelada">
+    <BaseLayout title="Cita Cancelada" branding={branding}>
       <Text style={{ fontSize: '18px', color: '#374151', margin: '0 0 24px 0' }}>
         Hola <strong>{pet.owner.firstName}</strong>,
       </Text>

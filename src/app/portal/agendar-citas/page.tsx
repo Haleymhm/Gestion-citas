@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 
 interface Pet {
   id: number;
@@ -50,7 +49,6 @@ const statusColors: Record<string, string> = {
 };
 
 export default function AgendarCitasPage() {
-  const router = useRouter();
   const [pets, setPets] = useState<Pet[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -65,9 +63,57 @@ export default function AgendarCitasPage() {
     notes: "",
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const [publicSettings, setPublicSettings] = useState<{
+    schedule: Record<string, { enabled: boolean; open: string; close: string }>;
+    upcomingHolidays: Array<{ id: number; date: string; label: string }>;
+  } | null>(null);
+
+  const validateLocalSlot = (date: string, time: string): string | null => {
+    if (!date || !time || !publicSettings) return null;
+
+    const selected = new Date(`${date}T${time}:00`);
+    const now = new Date();
+    if (selected < now) return "No se puede seleccionar una fecha pasada.";
+
+    const holiday = publicSettings.upcomingHolidays.find(
+      (h) => new Date(h.date).toDateString() === selected.toDateString()
+    );
+    if (holiday) return `La fecha seleccionada es un día feriado (${holiday.label}).`;
+
+    const dayKeys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayKey = dayKeys[selected.getDay()];
+    const daySchedule = publicSettings.schedule[dayKey];
+
+    if (!daySchedule.enabled) {
+      return "La clínica está cerrada ese día.";
+    }
+
+    const [openH, openM] = daySchedule.open.split(':').map(Number);
+    const [closeH, closeM] = daySchedule.close.split(':').map(Number);
+    const minutes = selected.getHours() * 60 + selected.getMinutes();
+    const open = openH * 60 + openM;
+    const close = closeH * 60 + closeM;
+
+    if (minutes < open || minutes >= close) {
+      return `Fuera del horario de atención (${daySchedule.open} - ${daySchedule.close}).`;
+    }
+
+    return null;
+  };
+
+  const localError = validateLocalSlot(form.date, form.time);
+
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch("/api/v1/public/settings");
+      const data = await res.json();
+      if (data.success) {
+        setPublicSettings(data.data);
+      }
+    } catch (err) {
+      console.error("Error fetching public settings:", err);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -99,6 +145,13 @@ export default function AgendarCitasPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchData();
+    fetchSettings();
+  }, []);
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,6 +293,11 @@ export default function AgendarCitasPage() {
                 </select>
               </div>
             </div>
+            {localError && (
+              <div className="p-3 text-sm text-red-500 bg-red-50 rounded-lg dark:bg-red-900/20">
+                {localError}
+              </div>
+            )}
             <div>
               <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-400">
                 Categoría *
@@ -303,7 +361,8 @@ export default function AgendarCitasPage() {
               </button>
               <button
                 type="submit"
-                className="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600"
+                disabled={!!localError}
+                className="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Solicitar Cita
               </button>
