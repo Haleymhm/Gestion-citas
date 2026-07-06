@@ -344,13 +344,14 @@ model ExamAttachment {
 * Implementar la logica de creacion de citas (offline y online).
 * Desarrollar el flujo de confirmacion manual (`PENDING` -> `CONFIRMED`).
 * Desarrollar el portal del cliente para solicitar citas.
-* **Calendario interactivo con:**
+  * **Calendario interactivo con:**
   * Panel lateral (side panel) con resumen del dia, proxima cita, atajos rapidos
   * Sistema de disenio clinico personalizado con CSS Modules (`Calendar.module.css`, `CalendarSidePanel.module.css`)
   * Modal de citas pendientes con contador y acciones rapidas
   * Modal de detalle de cita con cambio de estados y eliminacion
   * Notificacion visual de citas pendientes
   * Validacion de conflicto de horario por veterinario
+  * **Validacion de horarios de clinica y feriados desde configuracion del sistema**
 
 ### Fase 5: Modulo de Historial Medico (Dias 13-16) ✅ COMPLETADA
 
@@ -423,7 +424,7 @@ model ExamAttachment {
 * Recordatorio de vacunas proximas a vencer.
 * Follow-up post-consulta.
 
-### Fase 7: Testing, Pulido y Despliegue (Dias 17-18) 🟡 EN PROGRESO
+### Fase 7: Testing, Pulido y Despliegue (Dias 17-18) ✅ COMPLETADA
 
 * Pruebas funcionales de cada flujo.
 * Correccion de bugs y optimizacion de rendimiento.
@@ -431,32 +432,47 @@ model ExamAttachment {
 
 ### Fase 8: Modulos Faltantes y Mejoras (Post-MVP)
 
-#### 8.1 Portal del Cliente (Parcial)
-- **Completar `/portal/mis-mascotas`** - Listado de mascotas del cliente con detalle
-- **Perfil de usuario real** (datos reales, no estaticos)
-- Recuperacion de contrasena
+#### 8.1 Perfil de Usuario y Recuperacion de Contrasena ✅ COMPLETADO (2026-07-05)
+- ✅ **Perfil de usuario real** (`/admin/profile`) - Datos reales con edicion de nombre, email, telefono, direccion, region y comuna.
+- ✅ **Cambio de contrasena** - Modal con validacion de contrasena actual y nueva.
+- ✅ **Recuperacion de contrasena** - Flujo completo "Olvide mi contrasena" con email de reseteo via token.
 
-#### 8.2 Facturacion e Ingresos
+#### 8.2 Portal del Cliente (Parcial)
+- ✅ **`/portal/mis-mascotas`** - Listado de mascotas del cliente con detalle, selector y acciones rapidas.
+- ✅ `/portal/mis-citas` - Implementado funcionalmente.
+- ✅ `/portal/agendar-citas` - Implementado funcionalmente.
+- ✅ `/portal/historial-medico` - Implementado funcionalmente.
+
+#### 8.3 Facturacion e Ingresos
 - Modelo `Invoice` en Prisma
 - Campo `price` en `Category`
 - CRUD de facturas y calculo real de ingresos en dashboard
 
-#### 8.3 Subida de Archivos
+#### 8.4 Subida de Archivos
 - Integracion con almacenamiento (Supabase Storage / S3 / Cloudinary)
 - UI para adjuntar examenes, radiografias, recetas al historial medico
 
-#### 8.4 Configuracion del Sistema
-- Horarios de atencion de la clinica
-- Dias feriados
-- Personalizacion de marca (logo, colores, nombre clinica)
+#### 8.5 Configuracion del Sistema ✅ COMPLETADO (2026-07-03)
+- ✅ **Horarios de atencion** - Tabla editable weekdays + weekend con toggle, hora apertura/cierre, validacion Zod.
+- ✅ **Dias feriados** - CRUD de feriados con prevencion de fechas pasadas y deteccion de duplicados.
+- ✅ **Personalizacion de marca** - Nombre de clinica, colores primario/secundario (con color picker), email remitente, texto de pie, subida de logo (PNG/JPG/SVG <= 2MB).
+- ✅ **Integracion con agendamiento** - Validacion de horarios y feriados en el flujo de citas del cliente (RN-14, RN-15).
+- ✅ **Integracion con PDFs** - Colores y logo de la clinica en los PDFs de historial medico y auditoria.
+- ✅ **Integracion con Emails** - Colores, logo y nombre de la clinica en todos los templates de email transaccionales.
+- ✅ **API publica** (`/api/v1/public/settings`) para consumo desde portal y frontend sin autenticacion admin.
 
-#### 8.5 Reportes y Estadisticas Avanzadas
+#### 8.6 Reportes y Estadisticas Avanzadas
 - Reporte de ingresos por periodo
 - Reporte de citas por veterinario
 - Estadisticas de cancelaciones/no-shows
 - Exportacion de reportes a Excel/PDF
 
-#### 8.6 Notificaciones Push y SMS
+#### 8.7 Notificaciones Push y SMS
 - Integracion con servicio de SMS (Twilio)
 - Notificaciones push en navegador (Web Push)
 - Preferencias de notificacion por usuario
+
+#### 8.8 Recordatorios Automaticos (Cron Jobs)
+- Recordatorio de citas 24h antes.
+- Recordatorio de vacunas proximas a vencer.
+- Follow-up post-consulta.
