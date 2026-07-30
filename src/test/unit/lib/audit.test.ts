@@ -10,12 +10,24 @@ jest.mock('@/lib/prisma', () => ({
   },
 }));
 
-jest.mock('@/lib/logger', () => ({
-  default: {
-    info: jest.fn(),
-    error: jest.fn(),
-  },
-}));
+jest.mock('@/lib/logger', () => {
+  const fn = () => undefined;
+  return {
+    __esModule: true,
+    default: {
+      debug: jest.fn(fn),
+      info: jest.fn(fn),
+      warn: jest.fn(fn),
+      error: jest.fn(fn),
+    },
+    logger: {
+      debug: jest.fn(fn),
+      info: jest.fn(fn),
+      warn: jest.fn(fn),
+      error: jest.fn(fn),
+    },
+  };
+});
 
 describe('Audit Module - Pure Functions', () => {
   describe('detectFieldChanges', () => {
@@ -247,7 +259,8 @@ describe('Audit Module - createAuditLog', () => {
   });
 
   it('should handle errors gracefully', async () => {
-    prisma.auditLog.findFirst.mockRejectedValue(new Error('DB Error'));
+    prisma.auditLog.findFirst.mockResolvedValue(null);
+    prisma.auditLog.create.mockRejectedValue(new Error('DB Error'));
 
     await expect(
       createAuditLog({

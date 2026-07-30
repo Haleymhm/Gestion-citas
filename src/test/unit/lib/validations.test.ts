@@ -139,7 +139,9 @@ describe('Validations - Auth Schemas', () => {
         password: 'password123',
       });
       expect(result.success).toBe(false);
-      expect(result.error.issues[0].message).toContain('mayúscula');
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('mayúscula');
+      }
     });
 
     it('should reject password without number', () => {
@@ -148,7 +150,9 @@ describe('Validations - Auth Schemas', () => {
         password: 'PasswordNoNumber',
       });
       expect(result.success).toBe(false);
-      expect(result.error.issues[0].message).toContain('número');
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('número');
+      }
     });
 
     it('should reject short password', () => {

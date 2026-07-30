@@ -18,9 +18,9 @@ interface UserInfo {
   email: string;
 }
 
-export function detectFieldChanges<T extends Record<string, unknown>>(
-  before: T | null,
-  after: T,
+export function detectFieldChanges(
+  before: Record<string, unknown> | null,
+  after: Record<string, unknown>,
   fieldsToIgnore: string[] = ['createdAt', 'updatedAt', 'id']
 ): FieldChange[] {
   const changes: FieldChange[] = [];
