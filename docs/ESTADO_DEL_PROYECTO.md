@@ -1,7 +1,7 @@
 # Analisis de Estado del Proyecto - VeteriApp
 
 > **Version:** 2.3.0
-> **Fecha de Analisis:** 2026-07-02
+> **Fecha de Analisis:** 2026-07-08
 > **Total de Archivos:** ~25,000+ lineas de codigo
 
 ---
@@ -73,35 +73,57 @@
 - [x] **Emails automaticos** disparados por API de citas (POST/PUT)
 - [x] **Manejo de errores** no bloqueante (logs en consola)
 
-### 2.7 Auditoria y Seguridad
+### 2.7 Configuracion del Sistema (Fase 6.2 - Completada)
+- [x] **Horarios de atencion** editables por dia de la semana
+- [x] **Gestion de dias feriados** (CRUD completo)
+- [x] **Personalizacion de marca** (nombre, logo PNG/JPG/SVG, colores primario/secundario, email remitente, texto de pie)
+- [x] **API publica** `/api/v1/public/settings` para validacion de horarios en portal del cliente
+- [x] **Validacion de horarios de clinica y feriados** en agendamiento
+
+### 2.8 Perfil de Usuario (Fase 6.3 - Completada)
+- [x] **Edicion de datos personales** (nombre, email, telefono, direccion, region/comuna) via `/api/v1/profile`
+- [x] **Cambio de contrasena** con validacion de contrasena actual via `/api/v1/profile/password`
+- [x] **Componentes dinamicos** en `/admin/profile` (`UserMetaCard`, `UserInfoCard`, `UserAddressCard`) consumiendo API real
+- [x] **Perfil del cliente** en `/portal/perfil`
+
+### 2.9 Recuperacion de Contrasena (Fase 6.3 - Completada)
+- [x] **Flujo "Olvide mi contrasena"** en login
+- [x] **Token criptografico de un solo uso** almacenado en BD
+- [x] **Email con enlace de reseteo** (Resend API)
+- [x] **Expiracion de 60 minutos** del token
+- [x] **Endpoint** `POST /api/v1/auth/forgot-password` y `POST /api/v1/auth/reset-password`
+
+### 2.10 Portal "Mis Mascotas" (Fase 6.4 - Completada)
+- [x] **Listado de mascotas** del cliente logueado con foto/icono
+- [x] **Detalle completo** de cada mascota
+- [x] **Enlace al historial medico** por mascota
+- [x] **Edicion de datos** de la mascota por parte del dueno
+
+### 2.11 Auditoria y Seguridad
 - [x] **Logs de auditoria** con hash encadenado (blockchain-like)
 - [x] **Verificacion de integridad** de logs
 - [x] **Exportacion** a CSV y PDF
 - [x] **Validacion Zod** en todos los endpoints API (50+ schemas)
 - [x] **IP del cliente** trackeada en cada accion
 
-### 2.8 Infraestructura de Testing
+### 2.12 Infraestructura de Testing
 - [x] **Jest 30 + ts-jest** configurado
-- [x] **7 archivos de test** con 263+ tests unitarios
+- [x] **7 archivos de test** con 238+ tests unitarios
 - [x] **Mocks** de Prisma, Logger y JWT para testing
 - [x] **Cobertura de testing:** validations, jwt, api-response, audit, audit-signature, dashboard-metrics, dashboard-query
 
-### 2.9 Infraestructura de Categorias, Regiones y Comunas
+### 2.13 Infraestructura de Categorias, Regiones y Comunas
 - [x] **CRUD de Categorias** con color asociado para el calendario
 - [x] **Regiones y Comunas** de Chile (datos poblados via seed)
 - [x] **Validacion de RUT** chileno
 
 ---
 
-## 3. Vacantes del Portal del Cliente
+## 3. Portal del Cliente
 
 ### 3.1 Portal "Mis Mascotas" (`/portal/mis-mascotas`)
-**Estado:** Placeholder basico (solo titulo y descripcion)
-**Queue faltante:**
-- Listado de mascotas del cliente logueado con foto/icono
-- Detalle de cada mascota con informacion completa
-- Enlace al historial medico por mascota
-- Posibilidad de editar datos de la mascota
+**Estado:** Implementado funcionalmente (Fase 6.4)
+**Detalle:** Listado y detalle de mascotas del cliente logueado con foto/icono, enlace al historial medico y edicion de datos
 
 ### 3.2 Portal "Mis Citas" (`/portal/mis-citas`)
 **Estado:** Implementado funcionalmente
@@ -115,26 +137,15 @@
 **Estado:** Implementado funcionalmente
 **Detalle:** Selector de mascota, tabs por categoria (consultas, vacunas, desparasitacion, condiciones)
 
+### 3.5 Portal "Perfil" (`/portal/perfil`)
+**Estado:** Implementado funcionalmente
+**Detalle:** Datos personales y cambio de contrasena
+
 ---
 
 ## 4. Modulos que Requieren Trabajo o no Existen
 
-### 4.1 Perfil de Usuario (`/admin/profile`)
-**Estado:** Plantilla estatica con datos hardcodeados (Musharof Chowdhury / Estados Unidos)
-**Queue:**
-- [ ] Formulario para editar datos personales reales (nombre, telefono, direccion)
-- [ ] Cambio de contrasena
-- [ ] Subida de foto de perfil
-- [ ] Preferencias de notificacion
-
-### 4.2 Recuperacion de Contrasena
-**Estado:** No existe
-**Queue:**
-- [ ] Flujo "Olvide mi contrasena" en login
-- [ ] Envio de email con link de reseteo
-- [ ] Pantalla para establecer nueva contrasena
-
-### 4.3 Subida de Archivos / Examenes
+### 4.1 Subida de Archivos / Examenes
 **Estado:** Modelo `ExamAttachment` existe pero sin funcionalidad real
 **Queue:**
 - [ ] Integracion con almacenamiento (S3, Cloudinary, Supabase Storage)
@@ -142,7 +153,7 @@
 - [ ] UI para adjuntar examenes, radiografias, recetas
 - [ ] Visualizacion de archivos adjuntos en el historial medico
 
-### 4.4 Facturacion / Ingresos Reales
+### 4.2 Facturacion / Ingresos Reales
 **Estado:** Placeholder `revenue = 0` en dashboard
 **Queue:**
 - [ ] Modelo `Invoice` o `Payment` en Prisma
@@ -150,7 +161,7 @@
 - [ ] CRUD de facturas/invoices
 - [ ] Calculo automatico de ingresos en el dashboard
 
-### 4.5 Recordatorios Automaticos / Cron Jobs
+### 4.3 Recordatorios Automaticos / Cron Jobs
 **Estado:** No implementado
 **Queue:**
 - [ ] Sistema de cron jobs o Vercel Cron para enviar recordatorios
@@ -158,15 +169,7 @@
 - [ ] Recordatorio de vacunas proximas a vencer
 - [ ] Follow-up post-consulta
 
-### 4.6 Configuracion del Sistema
-**Estado:** No existe
-**Queue:**
-- [ ] Horarios de atencion de la clinica
-- [ ] Dias feriados
-- [ ] Configuracion de notificaciones
-- [ ] Personalizacion de la marca (logo, colores, nombre clinica)
-
-### 4.7 Reportes y Estadisticas Avanzadas
+### 4.4 Reportes y Estadisticas Avanzadas
 **Estado:** Solo dashboard basico
 **Queue:**
 - [ ] Reporte de ingresos por periodo
@@ -174,7 +177,7 @@
 - [ ] Estadisticas de cancelaciones/no-shows
 - [ ] Exportacion de reportes a Excel/PDF
 
-### 4.8 Notificaciones Push / SMS
+### 4.5 Notificaciones Push / SMS
 **Estado:** No implementado
 **Queue:**
 - [ ] Integracion con servicio de SMS (Twilio, etc.)
@@ -193,20 +196,20 @@
 | Gestion de Mascotas | Completado | 100% |
 | Categorias | Completado | 100% |
 | Regiones y Comunas | Completado | 100% |
-| Agendamiento de Citas | Completado | 95% | Calendario interactivo funcional con side panel |
+| Agendamiento de Citas | Completado | 100% | Calendario interactivo FullCalendar con side panel y validacion de horarios/feriados |
 | Historial Medico Completo | Completado | 100% |
 | Generacion de PDF | Completado | 100% |
 | Dashboard y KPIs | Completado | 100% |
 | Notificaciones por Email | Completado | 100% |
+| Configuracion del Sistema | Completado | 100% | Horarios, feriados, branding (logo, colores) - Fase 6.2 |
+| Perfil de Usuario | Completado | 100% | Edicion datos + cambio contrasena - Fase 6.3 |
+| Recuperacion de Contrasena | Completado | 100% | Token un solo uso, email reseteo - Fase 6.3 |
+| Portal del Cliente | Completado | 100% | Mis Mascotas, Mis Citas, Agendar, Historial, Perfil - Fase 6.4 |
 | Auditoria y Seguridad | Completado | 100% |
-| Tests Unitarios | Parcial | 60% | 7 archivos, 263 tests. Faltan tests de integracion y componentes |
-| Portal del Cliente | Parcial | 75% | Mis Citas, Historial Medico, Agendar - OK. Mis Mascotas - Placeholder |
-| Perfil de Usuario | Faltante | 5% | Plantilla estatica sin datos reales |
-| Recuperacion de Contrasena | Faltante | 0% |
-| Subida de Archivos | Faltante | 0% | Modelo existe pero no funcionalidad |
-| Facturacion/Ingresos | Faltante | 0% | Placeholder en dashboard |
+| Tests Unitarios | Parcial | 60% | 7 archivos, 238 tests. Faltan tests de integracion y componentes |
+| Subida de Archivos | Faltante | 0% | Modelo `ExamAttachment` existe pero sin funcionalidad |
+| Facturacion/Ingresos | Faltante | 0% | Placeholder `revenue = 0` en dashboard |
 | Recordatorios Automaticos | Faltante | 0% |
-| Configuracion del Sistema | Faltante | 0% |
 | Reportes Avanzados | Faltante | 0% |
 | Notificaciones Push/SMS | Faltante | 0% |
 
@@ -216,51 +219,47 @@
 
 | Metrica | Valor |
 |---|---|
-| Archivos de app (pages) | 26+ archivos |
-| Endpoints API | 32+ rutas |
-| Lineas de codigo API | ~3,719 lineas |
-| Componentes React | 60+ componentes |
-| Tests unitarios | 263+ tests en 7 archivos |
+| Archivos de app (pages) | 17+ paginas (admin + portal) |
+| Endpoints API | 42 rutas en 15 modulos bajo `/api/v1/` |
+| Componentes React | 90+ componentes |
+| Tests unitarios | 238+ tests en 7 archivos |
 | Schemas Zod | 50+ validaciones |
 | Templates de Email | 4 HTML |
-| Migrations Prisma | 3 migraciones |
+| Migrations Prisma | 5 migraciones |
 
 ---
 
 ## 7. Recomendaciones de Prioridad
 
 ### Fase 1: Inmediato (Proximas 1-2 semanas)
-1. **Completar Portal "Mis Mascotas"** - Los clientes necesitan ver sus mascotas
-2. **Implementar Perfil de Usuario real** - Datos estaticos actuales dan mala UX
-3. **Recuperacion de contrasena** - Esencial para el flujo de autenticacion
+1. **Subida de Archivos** para examenes, radiografias y recetas adjuntas al historial medico
+2. **Iniciar Tests de Integracion** - Critico para estabilidad en produccion
+3. **Tests de componentes** React (Testing Library ya instalado)
 
 ### Fase 2: Corto Plazo (Proximas 2-4 semanas)
-4. **Iniciar Tests de Integracion** - Critico para estabilidad en produccion
-5. **Subida de Archivos** para examenes adjuntos al historial medico
-6. **Configuracion del Sistema** (horarios, feriados)
+4. **Modulo de Facturacion** (modelo `Invoice`, campo `price` en `Category`, calculo real de ingresos en dashboard)
+5. **Recordatorios Automaticos** (cron jobs: citas 24h antes, vacunas proximas, follow-up post-consulta)
 
 ### Fase 3: Medio Plazo (Proximas 1-3 meses)
-7. **Modulo de Facturacion** (modelo Invoice, precios por categoria)
-8. **Recordatorios Automaticos** (cron jobs)
-9. **Reportes Avanzados**
+6. **Reportes Avanzados** (ingresos por periodo, citas por veterinario, cancelaciones/no-shows, exportacion Excel/PDF)
+7. **Notificaciones Push y SMS** (Twilio, Web Push)
 
 ### Fase 4: Largo Plazo
-10. **Notificaciones Push y SMS**
-11. **Tests End-to-End**
-12. **Optimizaciones de rendimiento**
+8. **Tests End-to-End** (Playwright/Cypress)
+9. **Optimizaciones de rendimiento**
+10. **CI/CD pipeline** y despliegue automatizado
 
 ---
 
-## 8. Archivos de Planificacion Existentes
+## 8. Archivos de Planificacion y Documentacion Existentes
 
 | Archivo | Contenido | Estado |
 |---|---|---|
-| `PLAN_MAESTRO.md` | Documento maestro con reglas de negocio, modelo de datos y fases | Activo |
-| `PLAN_DASHBOARD.md` | Plan detallado del dashboard | Completado |
-| `PLAN-EMAIL-INTEGRATION.md` | Plan de integracion de email | Completado |
-| `README.md` | Documentacion general del proyecto | Activo |
+| `README.md` | Documentacion general del proyecto (instalacion, modelo de datos, API, roles) | Activo |
 | `docs/SISTEMA-LOG-AUDITORIA.md` | Documentacion del sistema de auditoria | Activo |
+| `docs/API_DOCUMENTATION.md` | Documentacion de endpoints de API | Activo |
+| `ESTADO_DEL_PROYECTO.md` | Este documento - analisis de estado actual | Activo |
 
 ---
 
-*Documento generado automaticamente el 2026-07-02*
+*Documento actualizado el 2026-07-08*

@@ -139,7 +139,9 @@ describe('Validations - Auth Schemas', () => {
         password: 'password123',
       });
       expect(result.success).toBe(false);
-      expect(result.error.issues[0].message).toContain('mayúscula');
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('mayúscula');
+      }
     });
 
     it('should reject password without number', () => {
@@ -148,7 +150,9 @@ describe('Validations - Auth Schemas', () => {
         password: 'PasswordNoNumber',
       });
       expect(result.success).toBe(false);
-      expect(result.error.issues[0].message).toContain('número');
+      if (!result.success) {
+        expect(result.error.issues[0].message).toContain('número');
+      }
     });
 
     it('should reject short password', () => {
@@ -362,6 +366,20 @@ describe('Validations - Pet Schemas', () => {
         birthDate: '2023-06-15T10:00:00.000Z',
       });
       expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.birthDate).toBeInstanceOf(Date);
+      }
+    });
+
+    it('should accept date-only birthDate from <input type="date">', () => {
+      const result = CreatePetSchema.safeParse({
+        ...validPet,
+        birthDate: '2022-12-24',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.birthDate).toBeInstanceOf(Date);
+      }
     });
 
     it('should reject invalid date format', () => {
@@ -369,6 +387,21 @@ describe('Validations - Pet Schemas', () => {
         ...validPet,
         birthDate: 'not-a-date',
       });
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept ownerId as number and as numeric string', () => {
+      const numeric = CreatePetSchema.safeParse({ ...validPet, ownerId: 1 });
+      const stringified = CreatePetSchema.safeParse({ ...validPet, ownerId: '1' });
+      expect(numeric.success).toBe(true);
+      expect(stringified.success).toBe(true);
+      if (numeric.success && stringified.success) {
+        expect(stringified.data.ownerId).toBe(1);
+      }
+    });
+
+    it('should reject non-numeric ownerId string', () => {
+      const result = CreatePetSchema.safeParse({ ...validPet, ownerId: 'abc' });
       expect(result.success).toBe(false);
     });
   });
@@ -559,6 +592,33 @@ describe('Validations - Medical Record Schemas', () => {
       expect(result.success).toBe(false);
     });
 
+    it('should accept date-only format for date field', () => {
+      const result = CreateMedicalRecordSchema.safeParse({
+        ...validRecord,
+        date: '2023-06-15',
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.date).toBeInstanceOf(Date);
+      }
+    });
+
+    it('should accept full ISO datetime for date field', () => {
+      const result = CreateMedicalRecordSchema.safeParse({
+        ...validRecord,
+        date: '2023-06-15T10:00:00.000Z',
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject invalid date string', () => {
+      const result = CreateMedicalRecordSchema.safeParse({
+        ...validRecord,
+        date: 'not-a-date',
+      });
+      expect(result.success).toBe(false);
+    });
+
     it('should require positive petId', () => {
       const result = CreateMedicalRecordSchema.safeParse({
         title: 'Consulta',
@@ -721,6 +781,19 @@ describe('Validations - Vaccination Schema', () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it('should accept date-only format for administrationDate and nextDoseDate', () => {
+    const result = CreateVaccinationSchema.safeParse({
+      ...validVaccination,
+      administrationDate: '2024-01-15',
+      nextDoseDate: '2025-01-15',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.administrationDate).toBeInstanceOf(Date);
+      expect(result.data.nextDoseDate).toBeInstanceOf(Date);
+    }
+  });
 });
 
 describe('Validations - Deworming Schema', () => {
@@ -731,6 +804,19 @@ describe('Validations - Deworming Schema', () => {
     date: '2024-06-15T10:00:00.000Z',
     nextDate: '2024-12-15T10:00:00.000Z',
   };
+
+  it('should accept date-only format for date and nextDate', () => {
+    const result = CreateDewormingSchema.safeParse({
+      ...validDeworming,
+      date: '2024-06-15',
+      nextDate: '2024-12-15',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.date).toBeInstanceOf(Date);
+      expect(result.data.nextDate).toBeInstanceOf(Date);
+    }
+  });
 
   it('should accept valid deworming', () => {
     const result = CreateDewormingSchema.safeParse(validDeworming);
@@ -803,6 +889,17 @@ describe('Validations - Surgical History Schema', () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it('should accept date-only format for date', () => {
+    const result = CreateSurgicalHistorySchema.safeParse({
+      ...validSurgical,
+      date: '2023-06-15',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.date).toBeInstanceOf(Date);
+    }
+  });
 });
 
 describe('Validations - Chronic Condition Schema', () => {
@@ -844,6 +941,17 @@ describe('Validations - Chronic Condition Schema', () => {
       diagnosisDate: null,
     });
     expect(result.success).toBe(true);
+  });
+
+  it('should accept date-only format for diagnosisDate', () => {
+    const result = CreateChronicConditionSchema.safeParse({
+      ...validCondition,
+      diagnosisDate: '2024-01-15',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.diagnosisDate).toBeInstanceOf(Date);
+    }
   });
 });
 

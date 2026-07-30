@@ -113,7 +113,7 @@ export async function PUT(
     if (name) data.name = name;
     if (species) data.species = species;
     if (breed !== undefined) data.breed = breed;
-    if (birthDate !== undefined) data.birthDate = birthDate ? new Date(birthDate) : null;
+    if (birthDate !== undefined) data.birthDate = birthDate;
     if (weight !== undefined) data.weight = weight;
     if (sex !== undefined) data.sex = sex;
     if (reproductiveStatus !== undefined) data.reproductiveStatus = reproductiveStatus;

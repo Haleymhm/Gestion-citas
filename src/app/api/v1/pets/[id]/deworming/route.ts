@@ -78,8 +78,8 @@ export async function POST(
       productName,
       type,
       dosage: dosage || null,
-      date: date ? new Date(date) : new Date(),
-      nextDate: nextDate ? new Date(nextDate) : null,
+      date: date ?? new Date(),
+      nextDate: nextDate ?? null,
       petId: parseInt(id),
       createdById: user.userId,
     };

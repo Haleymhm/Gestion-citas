@@ -8,44 +8,72 @@ VeteriApp es un software integral para la gestión de clínicas veterinarias, qu
 
 ### Módulos Implementados
 
-- **Autenticación y Roles**: Sistema de autenticación con JWT, roles diferenciados (Admin, Veterinario, Recepcionista, Cliente)
-- **Gestión de Usuarios y Clientes**: CRUD completo de usuarios con validación de RUT chileno
-- **Gestión de Mascotas**: Registro de mascotas con información detallada (especie, raza, estado reproductivo, microchip)
-- **Agendamiento de Citas**: Sistema de citas con calendario (FullCalendar), estados variables, flujo online/offline
-- **Módulo de Historial Médico** (Fase 5 - Completada):
+- **Autenticación y Roles**: Sistema de autenticación con JWT (cookies HttpOnly), roles diferenciados (Admin, Veterinario, Recepcionista, Cliente), validacion de RUT chileno
+- **Recuperación de Contraseña**: Flujo completo con token cryptografico de un solo uso (almacenado en BD), email con enlace de reseteo, expiracion de 60 minutos
+- **Gestión de Usuarios y Clientes**: CRUD completo con paginacion y busqueda
+- **Gestión de Mascotas**: Registro completo con especie, raza, fecha nacimiento, peso, sexo, estado reproductivo, microchip, caracteristicas especiales
+- **Agendamiento de Citas**: Calendario FullCalendar con vistas mes/semana/dia, panel lateral con resumen del dia, modal de citas pendientes con acciones rapidas, validacion de horarios de clinica y feriados
+- **Módulo de Historial Médico**:
   - Registro de Vaccunaciones con tipos específicos (Óctuple, Séxtuple, Triple Felina, Antirrábica)
   - Control de desparasitación (interna y externa)
   - Antecedentes quirúrgicos
   - Alergias y patologías crónicas
-  - Registro de consultas con constantes fisiológicas (peso, temperatura, FC, FR)
+  - Registro de consultas con constantes fisiológicas (peso, temperatura, FC, FR, tiempo de repoblacion capilar, deshidratacion, mucosas)
   - Notas públicas y privadas
-- **Generación de PDF de Historial Médico** (Nueva funcionalidad):
+- **Generación de PDF de Historial Médico**:
   - Exportación completa del historial médico en formato PDF
   - Incluye: datos de mascota/propietario, vacunas, desparasitaciones, quirúrgicos, alergias/patologías y consultas
-  - Disponible tanto en panel admin como en portal del cliente
-- **Gestión de Citas Pendientes** (Nueva funcionalidad):
-  - Panel de notificaciones en el calendario con conteo de citas pendientes
-  - Modal interactivo para confirmar o cancelar citas pendientes de forma rápida
-  - Integración directa con el flujo de reversa de citas del cliente
-- **Dashboard Veterinario (Fase 6)** (Nueva funcionalidad):
-  - KPIs en tiempo real: citas del día, mascotas activas, ingresos (placeholder), próxima cita
-  - Distribución por especie (ApexCharts donut)
+  - Logo y colores de la clinica personalizables desde configuracion
+  - Disponible en admin y portal del cliente
+- **Dashboard Veterinario**:
+  - KPIs en tiempo real: citas del dia, mascotas activas, proxima cita
+  - Distribucion por especie (ApexCharts donut)
   - Citas por estado (ApexCharts bar horizontal)
-  - Top veterinarios por citas atendidas
-  - Próximas 5 citas como lista con badge de estado
-  - Selector de rango (Mes actual / Mes anterior / Trimestre / Año) vía URL `?range=`
-  - Filtro automático por rol (VET solo ve sus métricas, RN-16)
+  - Ranking de veterinarios por citas atendidas
+  - Selector de rango (Mes actual / Mes anterior / Trimestre / Ano) persistente en URL
+  - Filtro automatico por rol (VET solo ve sus metricas)
+- **Notificaciones por Email (Resend API)**:
+  - 4 templates HTML: cita creada, confirmada, cancelada, completada
+  - Layout base reutilizable con logo y colores de la clinica
+  - Disparados automaticamente por la API de citas
+  - Soporte para modo test (resend.dev)
+- **Configuración del Sistema** (solo ADMIN):
+  - Horarios de atencion editables por dia de la semana
+  - Gestion de dias feriados (CRUD completo)
+  - Personalizacion de marca: nombre, logo (PNG/JPG/SVG), colores primario/secundario, email remitente, texto de pie
+  - API publica para validacion de horarios en portal del cliente
+- **Perfil de Usuario**:
+  - Edicion de datos personales (nombre, email, telefono, direccion, region/comuna)
+  - Cambio de contrasena con validacion de contrasena actual
+- **Portal del Cliente**:
+  - `/portal/mis-mascotas` - Listado y detalle de mascotas del cliente
+  - `/portal/mis-citas` - Historial y proximas citas con badges de estado
+  - `/portal/agendar-citas` - Solicitud de cita con validacion de horarios
+  - `/portal/historial-medico` - Vista simplificada con notas publicas y calendario de vacunas
+  - `/portal/perfil` - Datos personales y cambio de contrasena
 - **Validación de Requests con Zod**:
   - Todos los endpoints de API validados con schemas Zod
-  - Tipos de datos verificados (emails, UUIDs, fechas ISO)
-  - Validación de rangos y valores permitidos (enums, números positivos)
+  - Tipos de datos verificados (emails, fechas ISO, enums)
+  - Validacion de horarios y limites (Zod refine)
   - Errores estructurados con ruta del campo y mensaje descriptivo
+- **Sistema de Auditoria**:
+  - Logs con hash encadenado (blockchain-like) para integridad
+  - Deteccion de cambios de campos (detectFieldChanges)
+  - Exportacion a CSV y PDF
+  - Verificacion de integridad de logs
+- **Infraestructura de Testing**:
+  - Jest 30 + ts-jest configurado
+  - 263+ tests unitarios en 7 archivos
+  - Mocks de Prisma, Logger y JWT
 
-### Funcionalidades Pendientes (Fase 6+)
+### Funcionalidades Pendientes (Post-MVP)
 
-- Sistema de notificaciones por email (Resend)
-- Recordatorios automáticos de citas
-- Modelo de ingresos real (Invoice / price por categoría) para reemplazar el placeholder del dashboard
+- **Facturacion e Ingresos**: Modelo `Invoice` en Prisma, campo `price` en `Category`, calculo real de ingresos en dashboard
+- **Subida de Archivos**: Integracion con Supabase Storage / S3 / Cloudinary para examenes, radiografias y recetas
+- **Configuracion del Sistema**: **COMPLETADA** - Horarios, feriados y marca (logo, colores, nombre)
+- **Recordatorios Automaticos**: Cron jobs para citas 24h antes, vacunas proximas y follow-up post-consulta
+- **Reportes Avanzados**: Ingresos por periodo, citas por veterinario, estadisticas de cancelaciones/no-shows, exportacion a Excel/PDF
+- **Notificaciones Push y SMS**: Integracion con Twilio y Web Push
 
 ## Stack Tecnológico
 
@@ -58,7 +86,7 @@ VeteriApp es un software integral para la gestión de clínicas veterinarias, qu
 | Base de Datos | PostgreSQL (Supabase Neon) |
 | Autenticación | Custom JWT (jose) + bcryptjs |
 | Validación | Zod 4.x (validación de requests en API routes) |
-| Notificaciones | Resend API (pendiente) |
+| Notificaciones | Resend API (emails transaccionales) ✅ |
 | UI Components | FullCalendar, ApexCharts |
 | Generación PDF | jsPDF + jspdf-autotable |
 | Testing | Jest 30 + ts-jest + @testing-library |
@@ -163,6 +191,13 @@ El esquema de base de datos está definido en `prisma/schema.prisma` con los sig
 - **ChronicCondition**: Alergias y patologías crónicas
   - Campos: id, name, type, severity, diagnosisDate, notes, isActive, petId
 
+- **ClinicSetting**: Configuración general de la clínica (key-value JSON)
+  - Keys: "schedule" (horarios semanales), "branding" (nombre, colores, logo, email)
+  - Campos: id, key, value, updatedAt, updatedById
+
+- **ClinicHoliday**: Días no laborables
+  - Campos: id, date, label, createdById, createdAt
+
 ### Relaciones entre Modelos
 
 ```
@@ -241,6 +276,8 @@ src/
 - `POST /api/v1/auth/login` - Inicio de sesión
 - `POST /api/v1/auth/logout` - Cerrar sesión
 - `GET /api/v1/auth/session` - Obtener sesión actual
+- `POST /api/v1/auth/forgot-password` - Solicitar recuperación de contraseña
+- `POST /api/v1/auth/reset-password` - Restablecer contraseña con token
 
 ### Gestión de Usuarios
 - `GET/POST /api/v1/users` - Listar/Crear usuarios
@@ -268,6 +305,19 @@ src/
 
 ### Dashboard (Fase 6)
 - `GET /api/v1/dashboard?range=month|prev|quarter|year` - Métricas agregadas (KPIs, distribuciones, top vets, próximas citas)
+
+### Perfil de Usuario
+- `GET/PUT /api/v1/profile` - Obtener/actualizar datos del usuario autenticado
+- `PUT /api/v1/profile/password` - Cambiar contraseña
+
+### Configuración del Sistema (ADMIN)
+- `GET /api/v1/configuracion` - Obtener configuracion completa (schedule, holidays, branding)
+- `PUT /api/v1/configuracion/schedule` - Actualizar horarios de atencion
+- `GET/POST /api/v1/configuracion/holidays` - Listar/crear feriados
+- `DELETE /api/v1/configuracion/holidays/[id]` - Eliminar feriado
+- `PUT /api/v1/configuracion/branding` - Actualizar marca (nombre, colores, footer, email)
+- `POST /api/v1/configuracion/branding/logo` - Subir logo
+- `GET /api/v1/public/settings` - Datos publicos de horarios y feriados (para portal cliente)
 
 ### Citas
 - `GET/POST /api/v1/appointments` - Listar/Crear citas
@@ -319,19 +369,22 @@ src/
 
 ## Estado de Desarrollo
 
-| Fase | Descripción | Estado |
-|------|-------------|--------|
-| Fase 1 | Inicialización del template | ✅ Completada |
-| Fase 2 | Modelado de datos y autenticación | ✅ Completada |
-| Fase 3 | Módulos de gestión (usuarios, clientes, mascotas) | ✅ Completada |
-| Fase 4 | Módulo de citas y calendario | ✅ Completada |
-| Fase 5 | Módulo de historial médico | ✅ Completada |
-| Fase 5.1 | Generación de PDF del historial médico | ✅ Completada |
-| Fase 5.2 | Modal de confirmación de citas pendientes | ✅ Completada |
-| Fase 6.0 | Dashboard y métricas veterinarias (KPIs, charts, rango) | ✅ Completada |
-| Fase 6.1 | Notificaciones por email (Resend) y recordatorios | ⏳ Pendiente |
-| Fase 7 | Testing, pulido y despliegue | 🟡 En progreso |
-| Fase 7.1 | Infraestructura de tests unitarios | ✅ Completada |
+| Fase | Descripción | Estado | Fecha |
+|------|-------------|--------|-------|
+| Fase 1 | Inicialización del template | ✅ Completada | 2026-06-08 |
+| Fase 2 | Modelado de datos y autenticación | ✅ Completada | 2026-06-08 |
+| Fase 3 | Módulos de gestión (usuarios, clientes, mascotas) | ✅ Completada | 2026-06-08 |
+| Fase 4 | Módulo de citas y calendario | ✅ Completada | 2026-06-09 |
+| Fase 5 | Módulo de historial médico | ✅ Completada | 2026-06-09 |
+| Fase 5.1 | Generación de PDF del historial médico | ✅ Completada | 2026-06-09 |
+| Fase 5.2 | Modal de confirmación de citas pendientes | ✅ Completada | 2026-06-09 |
+| Fase 6.0 | Dashboard y métricas veterinarias | ✅ Completada | 2026-07-01 |
+| Fase 6.1 | Notificaciones por email (Resend) | ✅ Completada | 2026-07-02 |
+| Fase 6.2 | Configuración del sistema (horarios, feriados, marca) | ✅ Completada | 2026-07-03 |
+| Fase 6.3 | Perfil de usuario real y recuperación de contraseña | ✅ Completada | 2026-07-05 |
+| Fase 6.4 | Portal "Mis Mascotas" completo | ✅ Completada | 2026-07-05 |
+| Fase 7 | Testing, pulido y despliegue | 🟡 En progreso | - |
+| Fase 7.1 | Infraestructura de tests unitarios | ✅ Completada | 2026-07-01 |
 
 ## Scripts Disponibles
 
@@ -390,13 +443,17 @@ pnpm test:coverage # Ejecutar tests con coverage report
 | `api-response.ts` | 22 | successResponse, errorResponse, unauthorizedResponse, etc. |
 | `audit.ts` | 28 | detectFieldChanges, getClientIp, createAuditLog |
 | `audit-signature.ts` | 29 | calculateHash, generateSignature, verifySignature |
-| **Total** | **263** | **Cobertura de módulos core** |
+| `dashboard-metrics.ts` | +15 | Cálculo de KPIs, distribuciones, ranking vets |
+| `dashboard-query.ts` | +5 | Query builders para dashboard |
+| **Total** | **263+** | **Cobertura de módulos core** |
 
 ### Mocks Configurados
 
 - `@/lib/prisma` - Cliente Prisma mockeado para evitar acceso a BD
 - `@/lib/logger` - Logger mockeado (pino + winston)
 - `jose` - JWT mockeado para testing de autenticación
+- `@/services/dashboard-metrics` - Métricas mockeadas para tests
+- `@/lib/auth-helper` - Auth helper mockeado
 
 ### Configuración
 

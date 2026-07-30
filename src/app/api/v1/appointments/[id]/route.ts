@@ -114,8 +114,8 @@ export async function PUT(
       categoryId?: string;
     } = {};
 
-    if (date) {
-      const newDate = new Date(date);
+    if (date !== undefined) {
+      const newDate = date;
       if (newDate < new Date() && newDate.toDateString() !== existingAppointment.date.toDateString()) {
         return errorResponse('No se puede mover una cita al pasado');
       }

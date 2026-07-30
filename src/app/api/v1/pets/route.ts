@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
       name,
       species,
       breed: breed || null,
-      birthDate: birthDate ? new Date(birthDate) : null,
+      birthDate: birthDate ?? null,
       weight: weight || null,
       sex: sex || null,
       reproductiveStatus: reproductiveStatus || null,
