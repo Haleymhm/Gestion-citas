@@ -261,10 +261,10 @@ export default function HistorialMedicoPage() {
           publicNotes: formData.publicNotes,
           privateNotes: formData.privateNotes || null,
           vitals: {
-            weight: formData.weight || null,
-            temperature: formData.temperature || null,
-            heartRate: formData.heartRate || null,
-            respiratoryRate: formData.respiratoryRate || null,
+            weight: formData.weight ? Number(formData.weight) : null,
+            temperature: formData.temperature ? Number(formData.temperature) : null,
+            heartRate: formData.heartRate ? Number(formData.heartRate) : null,
+            respiratoryRate: formData.respiratoryRate ? Number(formData.respiratoryRate) : null,
           },
         };
         break;

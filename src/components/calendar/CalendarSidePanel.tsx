@@ -92,32 +92,7 @@ export default function CalendarSidePanel() {
         )}
       </div>
 
-      <div className={styles.section}>
-        <h3 className={styles.sectionTitle}>Atajos Rápidos</h3>
-        <div className={styles.quickActions}>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className={styles.quickActionBtn}
-          >
-            <svg className={styles.quickActionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            Agregar Cita
-          </button>
-          <button
-            onClick={() => setShowPendingModal(true)}
-            className={`${styles.quickActionBtn} ${pendingCount > 0 ? styles.pendingBadge : ""}`}
-          >
-            <svg className={styles.quickActionIcon} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Ver Pendientes
-            {pendingCount > 0 && (
-              <span className={styles.badge}>{pendingCount}</span>
-            )}
-          </button>
-        </div>
-      </div>
+      
     </aside>
   );
 }
