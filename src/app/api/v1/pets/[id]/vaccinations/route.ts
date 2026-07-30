@@ -64,7 +64,7 @@ export async function POST(
       return errorResponse(validation.error);
     }
 
-    const { vaccineName, vaccineType, administrationDate, nextDoseDate, lotNumber, manufacturer, veterinarian } = validation.data;
+    const { vaccineName, vaccineType, administrationDate, nextDoseDate, lotNumber, manufacturer} = validation.data;
 
     const pet = await prisma.pet.findUnique({
       where: { id: parseInt(id) },
@@ -81,7 +81,7 @@ export async function POST(
       nextDoseDate: nextDoseDate ?? null,
       lotNumber: lotNumber || null,
       manufacturer: manufacturer || null,
-      veterinarian: veterinarian || null,
+      //veterinarian: user.userId || null,
       petId: parseInt(id),
       createdById: user.userId,
     };

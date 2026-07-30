@@ -218,7 +218,7 @@ export const CreateVaccinationSchema = z.object({
   nextDoseDate: DateInputNullable.optional(),
   lotNumber: z.string().optional(),
   manufacturer: z.string().optional(),
-  veterinarian: z.string().optional(),
+  //veterinarian: z.string().optional(),
 });
 
 export const CreateDewormingSchema = z.object({
