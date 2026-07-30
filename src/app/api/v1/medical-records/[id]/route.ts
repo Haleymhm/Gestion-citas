@@ -112,7 +112,7 @@ export async function PUT(
 
     const updateData: Record<string, unknown> = {};
     if (title) updateData.title = title;
-    if (date) updateData.date = new Date(date);
+    if (date !== undefined) updateData.date = date;
     if (diagnosis !== undefined) updateData.diagnosis = diagnosis;
     if (treatment !== undefined) updateData.treatment = treatment;
     if (publicNotes) updateData.publicNotes = publicNotes;

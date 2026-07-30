@@ -99,24 +99,53 @@ export const UpdateClientSchema = z.object({
   comunaId: z.string().nullable().optional(),
 });
 
+const DateInput = z
+  .string()
+  .refine(
+    (value) => !Number.isNaN(Date.parse(value)),
+    { message: 'Fecha inválida' }
+  )
+  .transform((value) => new Date(value));
+
+const DateInputRequired = z
+  .string()
+  .refine(
+    (value) => !Number.isNaN(Date.parse(value)),
+    { message: 'Fecha inválida' }
+  )
+  .transform((value) => new Date(value));
+
+const DateInputNullable = z
+  .string()
+  .nullable()
+  .refine(
+    (value) => value === null || !Number.isNaN(Date.parse(value)),
+    { message: 'Fecha inválida' }
+  )
+  .transform((value) => (value === null ? null : new Date(value)));
+
+const OwnerIdInput = z
+  .union([z.number().int().positive(), z.string().regex(/^\d+$/, 'ownerId inválido')])
+  .transform((value) => Number(value));
+
 export const CreatePetSchema = z.object({
   name: z.string().min(1, 'Nombre es requerido'),
   species: z.string().min(1, 'Especie es requerida'),
   breed: z.string().optional(),
-  birthDate: z.string().datetime().optional(),
+  birthDate: DateInput.optional(),
   weight: z.number().positive('El peso debe ser un número positivo').optional(),
   sex: Sex.optional(),
   reproductiveStatus: ReproductiveStatus.optional(),
   specialCharacteristics: z.string().optional(),
   microchipNumber: z.string().optional(),
-  ownerId: z.number().int().positive().optional(),
+  ownerId: OwnerIdInput.optional(),
 });
 
 export const UpdatePetSchema = z.object({
   name: z.string().min(1, 'Nombre es requerido').optional(),
   species: z.string().min(1, 'Especie es requerida').optional(),
   breed: z.string().nullable().optional(),
-  birthDate: z.string().datetime().nullable().optional(),
+  birthDate: DateInputNullable.optional(),
   weight: z.number().positive('El peso debe ser un número positivo').nullable().optional(),
   sex: Sex.nullable().optional(),
   reproductiveStatus: ReproductiveStatus.nullable().optional(),
@@ -125,7 +154,7 @@ export const UpdatePetSchema = z.object({
 });
 
 export const CreateAppointmentSchema = z.object({
-  date: z.string().datetime({ message: 'Fecha inválida' }),
+  date: DateInputRequired,
   reason: z.string().min(1, 'Motivo es requerido'),
   categoryId: z.string().uuid('ID de categoría inválido'),
   petId: z.number().int().positive('ID de mascota inválido'),
@@ -135,7 +164,7 @@ export const CreateAppointmentSchema = z.object({
 });
 
 export const UpdateAppointmentSchema = z.object({
-  date: z.string().datetime({ message: 'Fecha inválida' }).optional(),
+  date: DateInput.optional(),
   reason: z.string().min(1, 'Motivo es requerido').optional(),
   status: AppointmentStatus.optional(),
   notes: z.string().nullable().optional(),
@@ -145,7 +174,7 @@ export const UpdateAppointmentSchema = z.object({
 });
 
 export const CreateMedicalRecordSchema = z.object({
-  date: z.string().datetime({ message: 'Fecha inválida' }).optional(),
+  date: DateInput.optional(),
   title: z.string().min(1, 'Título es requerido'),
   diagnosis: z.string().optional(),
   treatment: z.string().optional(),
@@ -156,7 +185,7 @@ export const CreateMedicalRecordSchema = z.object({
 });
 
 export const UpdateMedicalRecordSchema = z.object({
-  date: z.string().datetime({ message: 'Fecha inválida' }).optional(),
+  date: DateInputNullable.optional(),
   title: z.string().min(1, 'Título es requerido').optional(),
   diagnosis: z.string().nullable().optional(),
   treatment: z.string().nullable().optional(),
@@ -185,8 +214,8 @@ export const UpdateCategorySchema = z.object({
 export const CreateVaccinationSchema = z.object({
   vaccineName: z.string().min(1, 'Nombre de vacuna es requerido'),
   vaccineType: z.string().min(1, 'Tipo de vacuna es requerido'),
-  administrationDate: z.string().datetime({ message: 'Fecha inválida' }).optional(),
-  nextDoseDate: z.string().datetime({ message: 'Fecha inválida' }).optional().nullable(),
+  administrationDate: DateInput.optional(),
+  nextDoseDate: DateInputNullable.optional(),
   lotNumber: z.string().optional(),
   manufacturer: z.string().optional(),
   veterinarian: z.string().optional(),
@@ -196,13 +225,13 @@ export const CreateDewormingSchema = z.object({
   productName: z.string().min(1, 'Nombre del producto es requerido'),
   type: DewormingType,
   dosage: z.string().optional(),
-  date: z.string().datetime({ message: 'Fecha inválida' }).optional(),
-  nextDate: z.string().datetime({ message: 'Fecha inválida' }).optional().nullable(),
+  date: DateInput.optional(),
+  nextDate: DateInputNullable.optional(),
 });
 
 export const CreateSurgicalHistorySchema = z.object({
   procedure: z.string().min(1, 'Procedimiento es requerido'),
-  date: z.string().datetime({ message: 'Fecha inválida' }).optional().nullable(),
+  date: DateInputNullable.optional(),
   complications: z.string().optional(),
   notes: z.string().optional(),
   outcomes: z.string().optional(),
@@ -212,7 +241,7 @@ export const CreateChronicConditionSchema = z.object({
   name: z.string().min(1, 'Nombre es requerido'),
   type: z.string().min(1, 'Tipo es requerido'),
   severity: z.string().optional(),
-  diagnosisDate: z.string().datetime({ message: 'Fecha inválida' }).optional().nullable(),
+  diagnosisDate: DateInputNullable.optional(),
   notes: z.string().optional(),
   isActive: z.boolean().optional(),
 });
@@ -292,7 +321,7 @@ export const UpdateScheduleSchema = z.object({
 });
 
 export const CreateHolidaySchema = z.object({
-  date: z.string().datetime({ message: 'Fecha inválida' }),
+  date: DateInputRequired,
   label: z.string().min(1, 'Etiqueta requerida').max(100),
 });
 

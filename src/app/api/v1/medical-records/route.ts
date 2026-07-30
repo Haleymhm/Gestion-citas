@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       vetId: user.userId,
     };
 
-    if (date) createData.date = new Date(date);
+    if (date) createData.date = date;
     if (diagnosis) createData.diagnosis = diagnosis;
     if (treatment) createData.treatment = treatment;
 

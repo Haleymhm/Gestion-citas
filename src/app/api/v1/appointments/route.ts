@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
       return errorResponse('Categoría no encontrada');
     }
 
-    const appointmentDate = new Date(date);
+    const appointmentDate = date;
     if (appointmentDate < new Date()) {
       return errorResponse('No se puede agendar una cita en el pasado');
     }

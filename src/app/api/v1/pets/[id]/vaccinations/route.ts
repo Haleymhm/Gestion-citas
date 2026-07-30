@@ -77,8 +77,8 @@ export async function POST(
     const createData = {
       vaccineName,
       vaccineType,
-      administrationDate: administrationDate ? new Date(administrationDate) : new Date(),
-      nextDoseDate: nextDoseDate ? new Date(nextDoseDate) : null,
+      administrationDate: administrationDate ?? new Date(),
+      nextDoseDate: nextDoseDate ?? null,
       lotNumber: lotNumber || null,
       manufacturer: manufacturer || null,
       veterinarian: veterinarian || null,

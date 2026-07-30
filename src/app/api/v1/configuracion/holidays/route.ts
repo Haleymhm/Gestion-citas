@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const validation = validateBody(CreateHolidaySchema, body);
     if (!validation.success) return errorResponse(validation.error);
 
-    const holidayDate = new Date(validation.data.date);
+    const holidayDate = validation.data.date;
     if (holidayDate < new Date(new Date().setHours(0, 0, 0, 0))) {
       return errorResponse('No se pueden crear feriados en el pasado');
     }

@@ -78,7 +78,7 @@ export async function POST(
       name,
       type,
       severity: severity || null,
-      diagnosisDate: diagnosisDate ? new Date(diagnosisDate) : null,
+      diagnosisDate: diagnosisDate ?? null,
       notes: notes || null,
       isActive: isActive !== undefined ? isActive : true,
       petId: parseInt(id),

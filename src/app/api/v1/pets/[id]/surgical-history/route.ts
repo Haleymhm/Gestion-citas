@@ -76,7 +76,7 @@ export async function POST(
 
     const createData = {
       procedure,
-      date: date ? new Date(date) : null,
+      date: date ?? null,
       complications: complications || null,
       notes: notes || null,
       outcomes: outcomes || null,
