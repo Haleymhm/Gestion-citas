@@ -7,26 +7,57 @@ const ADMIN_ONLY_PATHS = ['/usuarios', '/configuracion'];
 const STAFF_PATHS = ['/calendar', '/categorias', '/clientes', '/mascotas', '/historial-medico', '/regiones', '/comunas'];
 const VET_PATHS = ['/historial-medico'];
 
+const ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS ?? 'http://localhost:8081,http://localhost:3000')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
+function setCorsHeaders(request: NextRequest, response: NextResponse): NextResponse {
+  const origin = request.headers.get('origin');
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    response.headers.set('Vary', 'Origin');
+  }
+  response.headers.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
+  response.headers.set(
+    'Access-Control-Allow-Headers',
+    'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+  );
+  response.headers.set('Access-Control-Max-Age', '86400');
+  return response;
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  if (request.method === 'OPTIONS' && pathname.startsWith('/api/')) {
+    return setCorsHeaders(request, new NextResponse(null, { status: 204 }));
+  }
+
   if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+    if (pathname.startsWith('/api/')) {
+      return setCorsHeaders(request, NextResponse.next());
+    }
     return NextResponse.next();
   }
 
   if (pathname.startsWith('/api/v1/auth/logout')) {
-    return NextResponse.next();
+    return setCorsHeaders(request, NextResponse.next());
   }
 
   if (AUTH_API_PATHS.some(path => pathname.startsWith(path))) {
-    return NextResponse.next();
+    return setCorsHeaders(request, NextResponse.next());
   }
 
-  const token = request.cookies.get('auth-token')?.value;
+  const cookieToken = request.cookies.get('auth-token')?.value;
+  const authHeader = request.headers.get('authorization');
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  const token = cookieToken || bearerToken;
 
   if (!token) {
     if (pathname.startsWith('/api/')) {
-      return NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 });
+      return setCorsHeaders(request, NextResponse.json({ success: false, error: 'No autorizado' }, { status: 401 }));
     }
     return NextResponse.redirect(new URL('/signin', request.url));
   }
@@ -45,7 +76,7 @@ export async function proxy(request: NextRequest) {
     if (ADMIN_ONLY_PATHS.some(path => pathname.startsWith(path))) {
       if (session.role !== 'ADMIN') {
         if (pathname.startsWith('/api/')) {
-          return NextResponse.json({ success: false, error: 'Acceso prohibido' }, { status: 403 });
+          return setCorsHeaders(request, NextResponse.json({ success: false, error: 'Acceso prohibido' }, { status: 403 }));
         }
         return NextResponse.redirect(new URL('/', request.url));
       }
@@ -54,7 +85,7 @@ export async function proxy(request: NextRequest) {
     if (STAFF_PATHS.some(path => pathname.startsWith(path)) || VET_PATHS.some(path => pathname.startsWith(path))) {
       if (!['ADMIN', 'VET', 'RECEPTIONIST'].includes(session.role)) {
         if (pathname.startsWith('/api/')) {
-          return NextResponse.json({ success: false, error: 'Acceso prohibido' }, { status: 403 });
+          return setCorsHeaders(request, NextResponse.json({ success: false, error: 'Acceso prohibido' }, { status: 403 }));
         }
         return NextResponse.redirect(new URL('/portal/mis-citas', request.url));
       }
@@ -69,11 +100,12 @@ export async function proxy(request: NextRequest) {
     const response = NextResponse.next();
     response.headers.set('x-user-id', session.userId.toString());
     response.headers.set('x-user-role', session.role);
+    response.headers.set('x-user-email', session.email);
     response.headers.set('x-user-name', `${session.firstName} ${session.lastName}`);
-    return response;
+    return pathname.startsWith('/api/') ? setCorsHeaders(request, response) : response;
   } catch {
     if (pathname.startsWith('/api/')) {
-      return NextResponse.json({ success: false, error: 'Token inválido' }, { status: 401 });
+      return setCorsHeaders(request, NextResponse.json({ success: false, error: 'Token inválido' }, { status: 401 }));
     }
     const response = NextResponse.redirect(new URL('/signin', request.url));
     response.cookies.delete('auth-token');
