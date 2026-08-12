@@ -7,17 +7,24 @@ const ADMIN_ONLY_PATHS = ['/usuarios', '/configuracion'];
 const STAFF_PATHS = ['/calendar', '/categorias', '/clientes', '/mascotas', '/historial-medico', '/regiones', '/comunas'];
 const VET_PATHS = ['/historial-medico'];
 
-const ALLOWED_ORIGINS = (process.env.CORS_ALLOWED_ORIGINS ?? 'http://localhost:8081,http://localhost:3000')
-  .split(',')
-  .map(o => o.trim())
-  .filter(Boolean);
+function getAllowedOrigins(): string[] {
+  return (process.env.CORS_ALLOWED_ORIGINS ?? 'http://localhost:8081,http://localhost:3000')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean);
+}
 
 function setCorsHeaders(request: NextRequest, response: NextResponse): NextResponse {
   const origin = request.headers.get('origin');
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+  const allowedOrigins = getAllowedOrigins();
+  const allowAll = allowedOrigins.includes('*');
+
+  if (origin && (allowAll || allowedOrigins.includes(origin))) {
     response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Access-Control-Allow-Credentials', 'true');
     response.headers.set('Vary', 'Origin');
+  } else if (!origin && allowAll) {
+    response.headers.set('Access-Control-Allow-Origin', '*');
   }
   response.headers.set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,PATCH,OPTIONS');
   response.headers.set(

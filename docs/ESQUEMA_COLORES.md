@@ -7,7 +7,7 @@ La aplicación usa **Tailwind CSS v4** con variables CSS definidas en `src/app/g
 Color primario de la marca, usado en botones primarios, enlaces activos, foco de inputs y estados seleccionados.
 
 | Token | Hex |
-|---|---|
+| --- | --- |
 | brand-25 | `#f2f7ff` |
 | brand-50 | `#ecf3ff` |
 | brand-100 | `#dde9ff` |
@@ -26,7 +26,7 @@ Color primario de la marca, usado en botones primarios, enlaces activos, foco de
 Base para tipografías, bordes, fondos de cards y modo oscuro.
 
 | Token | Hex | Uso típico |
-|---|---|---|
+| --- | --- | --- |
 | gray-25 | `#fcfcfd` | |
 | gray-50 | `#f9fafb` | Fondo del body |
 | gray-100 | `#f2f4f7` | Hover de menús |
