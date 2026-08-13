@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
     await setAuthCookie(token);
 
     return successResponse({
+      token,
       user: {
         id: user.id,
         email: user.email,

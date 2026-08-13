@@ -45,3 +45,8 @@ next-env.d.ts
 # Logs
 logs
 ./logs
+
+# Docs
+/docs
+docs/
+.docs
